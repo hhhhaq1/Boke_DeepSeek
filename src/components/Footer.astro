@@ -1,0 +1,22 @@
+---
+import { SITE } from '../config';
+const year = new Date().getFullYear();
+const { github, email, rss } = SITE.social;
+---
+
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <p style="margin:0">
+      © {SITE.since}{year > SITE.since ? `–${year}` : ''} {SITE.author} · 由
+      <a href="https://astro.build" rel="noopener noreferrer" target="_blank">Astro</a>
+      驱动 · 托管于
+      <a href="https://pages.edgeone.ai" rel="noopener noreferrer" target="_blank">EdgeOne Pages</a>
+    </p>
+
+    <nav aria-label="页脚导航" style="display:flex;gap:1rem;flex-wrap:wrap">
+      {rss && <a href={rss}>RSS</a>}
+      {github && <a href={github} rel="noopener noreferrer" target="_blank">GitHub</a>}
+      {email && <a href={`mailto:${email}`}>邮箱</a>}
+    </nav>
+  </div>
+</footer>

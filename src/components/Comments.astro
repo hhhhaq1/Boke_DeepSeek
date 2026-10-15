@@ -1,0 +1,130 @@
+---
+/**
+ * 评论容器。
+ *
+ * 按 src/config.ts 里的 SITE.comments.mode 选择实现：
+ *   - 'giscus' ：加载 Giscus（GitHub Discussions），零后端
+ *   - 'self'   ：调用自建 EdgeOne 边缘函数 /api/comments（KV 存储）
+ *   - 'none'   ：不渲染
+ *
+ * 未配置完成时给出明确提示，而不是静默失败。
+ */
+import { SITE } from '../config';
+
+interface Props {
+  /** 用于区分评论区，通常传文章 id */
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const { mode, giscus } = SITE.comments;
+
+const giscusReady = Boolean(giscus.repo && giscus.repoId && giscus.categoryId);
+
+// Giscus 主题名，跟随本站明暗切换
+const giscusTheme = 'preferred_color_scheme';
+---
+
+{
+  mode === 'none' ? null : (
+    <section class="comments" aria-labelledby="comments-title">
+      <h2 class="comments__title" id="comments-title">
+        评论
+      </h2>
+
+      {mode === 'giscus' && giscusReady && (
+        <div
+          id="giscus-container"
+          data-repo={giscus.repo}
+          data-repo-id={giscus.repoId}
+          data-category={giscus.category}
+          data-category-id={giscus.categoryId}
+          data-mapping={giscus.mapping}
+          data-lang={giscus.lang}
+          data-reactions-enabled={giscus.reactionsEnabled}
+          data-input-position={giscus.inputPosition}
+          data-theme={giscusTheme}
+          data-loading={giscus.loading}
+        />
+      )}
+
+      {mode === 'giscus' && !giscusReady && (
+        <div class="comments__notice">
+          <strong>评论区尚未启用。</strong>
+          <br />
+          请到 <code>src/config.ts</code> 填写 <code>comments.giscus</code> 的
+          <code>repo</code>、<code>repoId</code>、<code>categoryId</code>，取值来自
+          <a href="https://giscus.app/zh-CN" rel="noopener noreferrer" target="_blank">
+            giscus.app
+          </a>
+          的配置生成器。
+        </div>
+      )}
+
+      {mode === 'self' && (
+        <div id="self-comments" data-slug={slug}>
+          <p class="comments__notice" id="self-comments-status" role="status">
+            正在加载评论…
+          </p>
+          <form id="self-comments-form" hidden>
+            <div style="display:grid;gap:.6rem;max-width:32rem">
+              <label>
+                <span class="visually-hidden">昵称</span>
+                <input
+                  name="author"
+                  required
+                  maxlength="40"
+                  placeholder="昵称 *"
+                  autocomplete="nickname"
+                  style="width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-elev);color:var(--text);font:inherit"
+                />
+              </label>
+              <label>
+                <span class="visually-hidden">邮箱（不会公开）</span>
+                <input
+                  name="email"
+                  type="email"
+                  maxlength="120"
+                  placeholder="邮箱（可选，不会公开）"
+                  autocomplete="email"
+                  style="width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-elev);color:var(--text);font:inherit"
+                />
+              </label>
+              <label>
+                <span class="visually-hidden">评论内容</span>
+                <textarea
+                  name="content"
+                  required
+                  maxlength="2000"
+                  rows="4"
+                  placeholder="说点什么…（支持纯文本，最多 2000 字）"
+                  style="width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-elev);color:var(--text);font:inherit;resize:vertical"
+                ></textarea>
+              </label>
+              <div style="display:flex;gap:.75rem;align-items:center">
+                <button
+                  type="submit"
+                  style="padding:.55rem 1.1rem;border:0;border-radius:8px;background:var(--accent);color:var(--accent-contrast);font:inherit;font-weight:600;cursor:pointer"
+                >
+                  发表评论
+                </button>
+                <span id="self-comments-msg" style="font-size:.8125rem;color:var(--text-faint)"></span>
+              </div>
+            </div>
+          </form>
+          <ul id="self-comments-list" style="list-style:none;padding:0;margin:1.5rem 0 0;display:grid;gap:.85rem"></ul>
+        </div>
+      )}
+    </section>
+  )
+}
+
+{
+  /* 自建评论的前端逻辑：仅在 self 模式下打包，避免无谓的 JS 体积。
+     Astro 会把这个 import 处理成构建产物里的模块脚本。 */
+  mode === 'self' && (
+    <script>
+      import '../scripts/comments';
+    </script>
+  )
+}

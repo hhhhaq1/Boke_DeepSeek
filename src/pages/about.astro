@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config';
+---
+
+<BaseLayout title="关于" description="关于这个博客和写它的人">
+  <header class="page-header">
+    <h1>关于</h1>
+    <p>关于这个博客，以及写它的人</p>
+  </header>
+
+  <div class="prose">
+    <h2>你好 👋</h2>
+    <p>
+      这里是 <strong>{SITE.title}</strong>，一个用来记录技术、思考和一些零散想法的地方。
+    </p>
+
+    <h2>我在写什么</h2>
+    <p>
+      主要写 <strong>Web 开发</strong>相关的内容，偶尔涉及工具链、性能优化和工程实践。比起罗列 API，
+      我更想写清楚「为什么这么做」和「踩过哪些坑」。
+    </p>
+
+    <h2>这个站点是怎么搭的</h2>
+    <ul>
+      <li>
+        <strong>框架</strong>：<a href="https://astro.build" rel="noopener noreferrer" target="_blank"
+          >Astro</a
+        > —— 静态输出，默认零 JavaScript
+      </li>
+      <li>
+        <strong>托管</strong>：<a
+          href="https://pages.edgeone.ai"
+          rel="noopener noreferrer"
+          target="_blank">腾讯云 EdgeOne Pages</a
+        > —— 国内访问快，有免费额度
+      </li>
+      <li><strong>内容</strong>：Markdown 文件，存在 Git 仓库里</li>
+      <li><strong>评论</strong>：Giscus 或自建边缘函数，两种方案可切换</li>
+    </ul>
+    <p>
+      整个站点没有服务器、没有数据库，写作流程就是「写 Markdown → push → 自动部署」。
+    </p>
+
+    <h2>联系我</h2>
+    <p>有想法欢迎在文章下面留言{ SITE.social.email && '，或者发邮件给我' }。</p>
+    {
+      SITE.social.email && (
+        <p>
+          邮箱：<a href={`mailto:${SITE.social.email}`}>{SITE.social.email}</a>
+        </p>
+      )
+    }
+    {
+      SITE.social.github && (
+        <p>
+          GitHub：
+          <a href={SITE.social.github} rel="noopener noreferrer" target="_blank">
+            {SITE.social.github.replace(/^https?:\/\/(www\.)?github\.com\//, '@')}
+          </a>
+        </p>
+      )
+    }
+
+    <blockquote>
+      <p>慢就是快，少即是多。</p>
+    </blockquote>
+  </div>
+</BaseLayout>

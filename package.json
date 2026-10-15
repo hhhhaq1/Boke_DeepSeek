@@ -1,0 +1,25 @@
+{
+  "name": "deepwork-blog",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Astro 静态个人博客，部署于腾讯云 EdgeOne Pages",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "node scripts/serve.mjs 4321 .edgeone/assets",
+    "check": "astro check",
+    "verify": "node scripts/verify-build.mjs && node scripts/smoke-test.mjs",
+    "test:fn": "node scripts/test-comments-fn.mjs && node scripts/test-ratelimit.mjs"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@edgeone/astro": "^1.1.5",
+    "astro": "^6.4.8"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

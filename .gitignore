@@ -1,0 +1,27 @@
+# 依赖
+node_modules/
+# pnpm 本地存储（若在本机开启了 store-dir 会生成在项目内）
+.pnpm-store/
+
+# 构建产物
+dist/
+.edgeone/
+.astro/
+.output/
+
+# 环境变量（切勿提交密钥）
+.env
+.env.*
+!.env.example
+
+# 编辑器 / 系统
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+npm-debug.log*
+pnpm-debug.log*

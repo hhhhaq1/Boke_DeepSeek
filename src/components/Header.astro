@@ -1,0 +1,69 @@
+---
+/**
+ * 页头：品牌 + 导航 + 主题切换。
+ */
+import { SITE } from '../config';
+
+const path = Astro.url.pathname;
+/** 当前路径是否命中导航项（首页需精确匹配，其余前缀匹配） */
+function isActive(href: string) {
+  if (href === '/') return path === '/';
+  return path === href || path.startsWith(href + '/');
+}
+---
+
+<header class="site-header">
+  <div class="container site-header__inner">
+    <a class="brand" href="/">
+      <span class="brand__dot" aria-hidden="true"></span>
+      {SITE.title}
+    </a>
+
+    <nav class="site-nav" aria-label="主导航">
+      {
+        SITE.nav.map((item) => (
+          <a
+            class="site-nav__link"
+            href={item.href}
+            aria-current={isActive(item.href) ? 'page' : undefined}
+          >
+            {item.text}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="header-actions">
+      <button
+        class="theme-toggle"
+        id="theme-toggle"
+        type="button"
+        aria-label="切换深色 / 浅色主题"
+        title="切换主题"
+      >
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<script>
+  // 主题切换：写入 localStorage，方便下次访问保持一致
+  const toggle = document.getElementById('theme-toggle');
+  toggle?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try {
+      localStorage.setItem('theme', next);
+    } catch {
+      /* 隐私模式下忽略 */
+    }
+  });
+</script>

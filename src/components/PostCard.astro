@@ -1,0 +1,50 @@
+---
+/**
+ * 文章卡片：用于首页 / 分页列表。
+ */
+import { formatDate, readingTime } from '../config';
+
+interface Props {
+  id: string;
+  title: string;
+  description: string;
+  pubDate: Date;
+  tags?: string[];
+  body?: string;
+}
+
+const { id, title, description, pubDate, tags = [], body = '' } = Astro.props;
+const minutes = readingTime(body);
+---
+
+<li class="post-card">
+  <a class="post-card__link" href={`/blog/${id}/`}>
+    <h2 class="post-card__title">{title}</h2>
+    <p class="post-card__desc">{description}</p>
+    <div class="post-meta">
+      <span class="post-meta__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+          <path d="M16 2v4M8 2v4M3 10h18"></path>
+        </svg>
+        <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+      </span>
+      <span class="post-meta__item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v5l3 2"></path>
+        </svg>
+        约 {minutes} 分钟
+      </span>
+      {
+        tags.length > 0 && (
+          <span class="post-meta__item">
+            {tags.slice(0, 4).map((t) => (
+              <span class="tag">{t}</span>
+            ))}
+          </span>
+        )
+      }
+    </div>
+  </a>
+</li>

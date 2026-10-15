@@ -1,0 +1,8 @@
+# pnpm 配置
+#
+# pnpm 10.16 起，原先写在 package.json 的 "pnpm" 字段已迁移到本文件。
+# esbuild 与 sharp 需要在安装后执行脚本下载对应平台的二进制文件，
+# 这里显式放行；否则构建阶段会因缺少二进制而失败。
+allowBuilds:
+  esbuild: true
+  sharp: true
