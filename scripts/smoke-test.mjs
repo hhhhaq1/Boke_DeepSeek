@@ -1,4 +1,6 @@
 // 渲染验收：检查构建产物里关键结构是否真的输出了。
+import fs from 'node:fs';
+
 const BASE = process.env.BASE ?? 'http://127.0.0.1:4399';
 
 async function get(p) {
@@ -11,16 +13,28 @@ function check(name, ok) {
   checks.push({ name, ok });
 }
 
+// 文章数量会随写作变化，因此从磁盘动态读取，避免测试写死后失效
+const postCount = fs.readdirSync('src/content/blog').filter((f) => f.endsWith('.md')).length;
+const pageSize = 6; // 与 src/config.ts 的 SITE.pageSize 保持一致
+const expectOnHome = Math.min(postCount, pageSize);
+
 const home = await get('/');
 check('首页返回 200', home.status === 200);
 check('首页有 Hero 标题', home.html.includes('hero__title'));
-check('首页渲染 3 张文章卡片', (home.html.match(/class="post-card"/g) || []).length === 3);
+check(
+  `首页渲染 ${expectOnHome} 张文章卡片`,
+  (home.html.match(/class="post-card"/g) || []).length === expectOnHome
+);
 check('首页 <title> 含站点名', /<title>[^<]*DeepWork[^<]*<\/title>/.test(home.html));
 check('首页有 meta description', /name="description"/.test(home.html));
 check('首页有 canonical', /rel="canonical"/.test(home.html));
 check('首页有 og:title', /property="og:title"/.test(home.html));
 check('主题预置脚本存在', home.html.includes("localStorage.getItem('theme')"));
-check('单页文章少于每页数量时不渲染分页', !home.html.includes('class="pagination"'));
+// 文章数未超过每页条数时不应出现分页控件
+check(
+  '未超出每页条数时不渲染分页',
+  postCount > pageSize || !home.html.includes('class="pagination"')
+);
 check('导航高亮首页', /href="\/" aria-current="page"/.test(home.html));
 
 const post = await get('/blog/hello-world/');
@@ -49,7 +63,7 @@ check('关于页返回 200', about.status === 200);
 
 const rss = await get('/rss.xml');
 check('RSS 返回 200', rss.status === 200);
-check('RSS 含 3 条 item', (rss.html.match(/<item>/g) || []).length === 3);
+check(`RSS 含 ${postCount} 条 item`, (rss.html.match(/<item>/g) || []).length === postCount);
 check('RSS 声明 zh-CN', rss.html.includes('<language>zh-CN</language>'));
 
 const sm = await get('/sitemap-index.xml');

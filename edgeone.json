@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": ".edgeone",
-  "nodeVersion": "22.18.0",
+  "nodeVersion": "22.11.0",
   "headers": [
     {
       "source": "/_astro/*",

@@ -17,9 +17,9 @@
     "@astrojs/rss": "^4.0.19",
     "@astrojs/sitemap": "^3.7.4",
     "@edgeone/astro": "^1.1.5",
-    "astro": "^6.4.8"
+    "astro": "^5.18.2"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.0.0"
   }
 }
