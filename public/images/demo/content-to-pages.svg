@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="960" height="480" role="img" aria-label="一篇 Markdown 经过内容集合校验和 Astro 预渲染后，自动生成首页、分页、归档、标签、RSS 与 Sitemap">
+  <rect width="960" height="480" fill="#f6f8fc"/>
+
+  <text x="48" y="52" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="21" font-weight="600" fill="#16223a">一篇 Markdown 会变成哪些页面</text>
+  <text x="48" y="80" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#6b7686">新增文章不需要改任何代码，构建时自动进入所有列表</text>
+
+  <rect x="48" y="140" width="190" height="88" rx="10" fill="#ffffff" stroke="#d7e0ec" stroke-width="1.5"/>
+  <text x="143" y="175" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#16223a">content/blog</text>
+  <text x="143" y="199" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-size="12.5" fill="#6b7686">*.md</text>
+
+  <path d="M246 184 H270" stroke="#9db2cc" stroke-width="1.5" fill="none"/>
+  <path d="M264 179 L272 184 L264 189" stroke="#9db2cc" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="278" y="140" width="190" height="88" rx="10" fill="#ffffff" stroke="#d7e0ec" stroke-width="1.5"/>
+  <text x="373" y="175" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#16223a">内容集合校验</text>
+  <text x="373" y="199" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="12.5" fill="#6b7686">Zod schema</text>
+
+  <path d="M476 184 H500" stroke="#9db2cc" stroke-width="1.5" fill="none"/>
+  <path d="M494 179 L502 184 L494 189" stroke="#9db2cc" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="508" y="140" width="190" height="88" rx="10" fill="#ffffff" stroke="#d7e0ec" stroke-width="1.5"/>
+  <text x="603" y="175" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#16223a">Astro 预渲染</text>
+  <text x="603" y="199" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="12.5" fill="#6b7686">getStaticPaths</text>
+
+  <path d="M706 184 H730" stroke="#9db2cc" stroke-width="1.5" fill="none"/>
+  <path d="M724 179 L732 184 L724 189" stroke="#9db2cc" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <rect x="738" y="140" width="174" height="88" rx="10" fill="#e8f0ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="825" y="175" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#1b4fa8">静态 HTML</text>
+  <text x="825" y="199" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="12.5" fill="#4a6fa5">零 JavaScript</text>
+
+  <path d="M48 270 H912" stroke="#dde5ef" stroke-width="1.5" fill="none"/>
+  <text x="48" y="302" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="13" fill="#8b96a6">构建时自动生成</text>
+
+  <rect x="48" y="320" width="272" height="48" rx="8" fill="#ffffff" stroke="#e2e9f2" stroke-width="1.5"/>
+  <text x="76" y="350" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#3d4a5c">首页（每页 6 篇）</text>
+
+  <rect x="336" y="320" width="272" height="48" rx="8" fill="#ffffff" stroke="#e2e9f2" stroke-width="1.5"/>
+  <text x="364" y="350" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#3d4a5c">分页 /page/2/</text>
+
+  <rect x="624" y="320" width="288" height="48" rx="8" fill="#ffffff" stroke="#e2e9f2" stroke-width="1.5"/>
+  <text x="652" y="350" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#3d4a5c">归档（按年份分组）</text>
+
+  <rect x="48" y="384" width="272" height="48" rx="8" fill="#ffffff" stroke="#e2e9f2" stroke-width="1.5"/>
+  <text x="76" y="414" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#3d4a5c">标签云与标签详情</text>
+
+  <rect x="336" y="384" width="272" height="48" rx="8" fill="#ffffff" stroke="#e2e9f2" stroke-width="1.5"/>
+  <text x="364" y="414" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#3d4a5c">RSS 订阅源</text>
+
+  <rect x="624" y="384" width="288" height="48" rx="8" fill="#ffffff" stroke="#e2e9f2" stroke-width="1.5"/>
+  <text x="652" y="414" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#3d4a5c">Sitemap 与 robots.txt</text>
+</svg>

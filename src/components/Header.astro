@@ -35,33 +35,63 @@ function isActive(href: string) {
 
     <div class="header-actions">
       <button
-        class="theme-toggle"
-        id="theme-toggle"
+        class="mode-toggle"
+        id="mode-toggle"
         type="button"
-        aria-label="切换深色 / 浅色主题"
-        title="切换主题"
+        role="switch"
+        aria-checked="false"
+        aria-label="切换日间 / 夜间模式"
+        title="日间 / 夜间模式"
       >
-        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="4"></circle>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
-        </svg>
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-        </svg>
+        <span class="mode-toggle__icon mode-toggle__icon--sun" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+          </svg>
+        </span>
+
+        <span class="mode-toggle__icon mode-toggle__icon--moon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </span>
+
+        <span class="mode-toggle__knob" aria-hidden="true"></span>
       </button>
     </div>
   </div>
 </header>
 
 <script>
-  // 主题切换：写入 localStorage，方便下次访问保持一致
-  const toggle = document.getElementById('theme-toggle');
+  // 日间 = glass（白底 + 照片玻璃），夜间 = neon（深灰底 + 极光）
+  const THEME_DAY = 'glass';
+  const THEME_NIGHT = 'neon';
+  const THEME_KEY = 'theme';
+
+  const root = document.documentElement;
+  const toggle = document.getElementById('mode-toggle');
+
+  /** 按当前主题同步开关的视觉状态与无障碍属性 */
+  function syncToggle() {
+    const isNight = root.getAttribute('data-theme') === THEME_NIGHT;
+    toggle?.setAttribute('aria-checked', isNight ? 'true' : 'false');
+  }
+
+  // 首屏由内联脚本决定主题，这里只做状态同步，避免 JS 未执行时按钮状态错乱
+  syncToggle();
+
   toggle?.addEventListener('click', () => {
-    const root = document.documentElement;
-    const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    const next = root.getAttribute('data-theme') === THEME_NIGHT ? THEME_DAY : THEME_NIGHT;
+
+    // 短暂开启颜色过渡，避免切换时生硬闪变
+    root.classList.add('is-theme-switching');
+    window.setTimeout(() => root.classList.remove('is-theme-switching'), 320);
+
     root.setAttribute('data-theme', next);
+    syncToggle();
+
     try {
-      localStorage.setItem('theme', next);
+      localStorage.setItem(THEME_KEY, next);
     } catch {
       /* 隐私模式下忽略 */
     }

@@ -57,7 +57,7 @@ const { sessionId } = await cdp.send('Target.attachToTarget', { targetId, flatte
 await cdp.send('Page.enable', {}, sessionId);
 await cdp.send('Runtime.enable', {}, sessionId);
 
-async function shoot(name, url, w, h, theme = 'light') {
+async function shoot(name, url, w, h, theme = 'glass') {
   await cdp.send('Emulation.setDeviceMetricsOverride',
     { width: w, height: h, deviceScaleFactor: 1, mobile: w < 500 }, sessionId);
   await cdp.send('Page.navigate', { url }, sessionId);
@@ -73,7 +73,7 @@ async function shoot(name, url, w, h, theme = 'light') {
 
 await shoot('m-home', `${BASE}/`, 390, 844);
 await shoot('m-post', `${BASE}/blog/hello-world/`, 390, 844);
-await shoot('m-tags', `${BASE}/tags/`, 390, 844);
+await shoot('m-posts', `${BASE}/posts/`, 390, 844);
 await shoot('m-dark', `${BASE}/blog/comments-comparison/`, 390, 844, 'dark');
 await shoot('tablet-home', `${BASE}/`, 820, 900);
 await shoot('wide-post', `${BASE}/blog/astro-blog-guide/`, 1600, 1000);

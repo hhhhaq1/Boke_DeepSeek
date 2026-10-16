@@ -1,0 +1,96 @@
+---
+/**
+ * 文章页：/posts
+ *
+ * 全部文章一页列完（不再分页，也不再有单独的「归档」「标签」页），
+ * 顶部带搜索框。列表是构建时静态渲染的 HTML，禁用 JS 也能看全；
+ * 搜索只是在此基础上做过滤增强。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostCard from '../components/PostCard.astro';
+import { EFFECTS, assignCovers } from '../config';
+import { getSortedPosts } from '../utils/posts';
+
+const posts = await getSortedPosts();
+const covers = assignCovers(posts.map((p) => p.data.title));
+const search = EFFECTS.search;
+---
+
+<BaseLayout title="文章" description="全部文章列表，支持按标题、摘要和正文搜索">
+  <div class="page-narrow">
+  <header class="page-header">
+    <h1>文章</h1>
+    <p>共 {posts.length} 篇，按发布时间倒序。</p>
+  </header>
+
+  {
+    search && (
+      <div class="search">
+        <div class="search__field">
+          <svg
+            class="search__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.6-3.6" />
+          </svg>
+
+          <input
+            class="search__input"
+            type="search"
+            placeholder="搜索标题、摘要或正文…"
+            aria-label="搜索文章"
+            autocomplete="off"
+            spellcheck="false"
+            data-search-input
+          />
+
+          <button class="search__clear" type="button" aria-label="清空搜索" data-search-clear hidden>
+            ×
+          </button>
+          <kbd class="search__kbd" aria-hidden="true">/</kbd>
+        </div>
+
+        <p class="search__status" data-search-status aria-live="polite">
+          共 {posts.length} 篇
+        </p>
+      </div>
+    )
+  }
+
+  {
+    posts.length > 0 ? (
+      <>
+        <ul class="post-list" data-search-list>
+          {posts.map((post, i) => (
+            <PostCard
+              id={post.id}
+              title={post.data.title}
+              description={post.data.description}
+              pubDate={post.data.pubDate}
+              tags={post.data.tags}
+              body={post.body ?? ''}
+              cover={post.data.cover}
+              coverFrom={covers[i].from}
+              coverTo={covers[i].to}
+            />
+          ))}
+        </ul>
+
+        <p class="empty search__empty" data-search-empty hidden>
+          没有匹配的文章，换个关键词试试。
+        </p>
+      </>
+    ) : (
+      <p class="empty">
+        还没有文章。在 <code>src/content/blog/</code> 下新建一个 <code>.md</code> 文件就能开始写作。
+      </p>
+    )
+  }
+  </div>
+</BaseLayout>

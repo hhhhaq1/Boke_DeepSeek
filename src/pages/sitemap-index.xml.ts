@@ -8,7 +8,7 @@
  * 这里改用 Astro 自身的端点，让 sitemap 参与正常的预渲染流程，确保一定被部署。
  */
 import type { APIContext } from 'astro';
-import { getSortedPosts, collectTags } from '../utils/posts';
+import { getSortedPosts } from '../utils/posts';
 
 /** 把 URL 片段安全地编码（保留斜杠） */
 function encodePath(p: string): string {
@@ -21,13 +21,9 @@ function encodePath(p: string): string {
 export async function GET(context: APIContext) {
   const site = (context.site ?? new URL('https://example.com')).href.replace(/\/$/, '');
   const posts = await getSortedPosts();
-  const tags = collectTags(posts);
 
-  /** 静态页面 */
-  const staticPaths = ['/', '/archive/', '/tags/', '/about/'];
-  /** 分页 */
-  const pageCount = Math.max(1, Math.ceil(posts.length / 6));
-  const pagePaths = Array.from({ length: pageCount - 1 }, (_, i) => `/page/${i + 2}/`);
+  /** 静态页面（不再有 /archive/ 和 /tags/，文章列表统一在 /posts/） */
+  const staticPaths = ['/', '/posts/', '/notes/', '/about/'];
 
   const urls: { loc: string; lastmod?: string; priority: string }[] = [
     ...staticPaths.map((p) => ({ loc: `${site}${p}`, priority: p === '/' ? '1.0' : '0.6' })),
@@ -36,11 +32,6 @@ export async function GET(context: APIContext) {
       lastmod: (post.data.updatedDate ?? post.data.pubDate).toISOString(),
       priority: '0.8',
     })),
-    ...tags.map(({ tag }) => ({
-      loc: `${site}/tags/${encodeURIComponent(tag)}/`,
-      priority: '0.4',
-    })),
-    ...pagePaths.map((p) => ({ loc: `${site}${p}`, priority: '0.3' })),
   ];
 
   const body = `<?xml version="1.0" encoding="UTF-8"?>

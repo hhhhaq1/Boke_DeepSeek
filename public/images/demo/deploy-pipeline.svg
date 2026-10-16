@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" width="960" height="500" role="img" aria-label="部署链路：本地写作、推送仓库、EdgeOne 构建、边缘节点分发，右侧提示输出目录必须填 .edgeone">
+  <rect width="960" height="500" fill="#f6f8fc"/>
+
+  <text x="48" y="52" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="21" font-weight="600" fill="#16223a">部署链路：从 git push 到全球节点</text>
+  <text x="48" y="80" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" fill="#6b7686">推上去之后自动重新构建，通常一两分钟就能看到新内容</text>
+
+  <path d="M72 178 V392" stroke="#d7e0ec" stroke-width="2" fill="none"/>
+
+  <circle cx="72" cy="162" r="16" fill="#e8f0ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="72" y="168" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="600" fill="#1b4fa8">1</text>
+  <rect x="104" y="130" width="456" height="64" rx="10" fill="#ffffff" stroke="#d7e0ec" stroke-width="1.5"/>
+  <text x="128" y="156" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#16223a">本地写作与预览</text>
+  <text x="128" y="178" font-family="ui-monospace, Consolas, monospace" font-size="12.5" fill="#6b7686">npm run dev</text>
+
+  <circle cx="72" cy="244" r="16" fill="#e8f0ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="72" y="250" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="600" fill="#1b4fa8">2</text>
+  <rect x="104" y="212" width="456" height="64" rx="10" fill="#ffffff" stroke="#d7e0ec" stroke-width="1.5"/>
+  <text x="128" y="238" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#16223a">推送到 GitHub</text>
+  <text x="128" y="260" font-family="ui-monospace, Consolas, monospace" font-size="12.5" fill="#6b7686">git push</text>
+
+  <circle cx="72" cy="326" r="16" fill="#e8f0ff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="72" y="332" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="600" fill="#1b4fa8">3</text>
+  <rect x="104" y="294" width="456" height="64" rx="10" fill="#ffffff" stroke="#d7e0ec" stroke-width="1.5"/>
+  <text x="128" y="320" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#16223a">EdgeOne 拉取代码并构建</text>
+  <text x="128" y="342" font-family="ui-monospace, Consolas, monospace" font-size="12.5" fill="#6b7686">npm install &amp;&amp; npm run build</text>
+
+  <circle cx="72" cy="408" r="16" fill="#e0f2ef" stroke="#0f766e" stroke-width="1.5"/>
+  <text x="72" y="414" text-anchor="middle" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="14" font-weight="600" fill="#0f6e56">4</text>
+  <rect x="104" y="376" width="456" height="64" rx="10" fill="#ffffff" stroke="#d7e0ec" stroke-width="1.5"/>
+  <text x="128" y="402" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#16223a">分发到全球边缘节点</text>
+  <text x="128" y="424" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="12.5" fill="#6b7686">静态资源带一年缓存头</text>
+
+  <rect x="600" y="130" width="312" height="180" rx="12" fill="#fff6ed" stroke="#e8a33d" stroke-width="1.5"/>
+  <text x="624" y="166" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="15" font-weight="600" fill="#8a5510">容易踩的坑</text>
+  <text x="624" y="196" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="13.5" fill="#7a5a2e">输出目录必须填</text>
+  <rect x="624" y="208" width="118" height="30" rx="6" fill="#ffffff" stroke="#e0c9a6" stroke-width="1.5"/>
+  <text x="683" y="228" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-size="14" font-weight="600" fill="#8a5510">.edgeone</text>
+  <text x="624" y="266" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="13.5" fill="#7a5a2e">填错的话构建会显示成功，</text>
+  <text x="624" y="288" font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif" font-size="13.5" fill="#7a5a2e">但访问站点是 404。</text>
+</svg>

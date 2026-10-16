@@ -1,8 +1,14 @@
 ---
 /**
  * 文章卡片：用于首页 / 分页列表。
+ *
+ * 左侧封面：默认是按标题哈希生成的渐变块（同一篇永远同色），
+ * 文章 frontmatter 里写了 cover 就用真实图片。
+ * 日期做成封面上的大字，所以元信息行里不再重复显示。
+ *
+ * 带 .reveal 类，进入视口时由 enhance.ts 触发上浮淡入。
  */
-import { formatDate, readingTime } from '../config';
+import { formatDate, readingTime, coverGradient } from '../config';
 
 interface Props {
   id: string;
@@ -11,40 +17,67 @@ interface Props {
   pubDate: Date;
   tags?: string[];
   body?: string;
+  /** 真实封面图；不填则用渐变 */
+  cover?: string;
+  /** 渐变由页面统一分配（assignCovers），保证相邻卡片不撞色；不传则按标题自行哈希 */
+  coverFrom?: string;
+  coverTo?: string;
 }
 
-const { id, title, description, pubDate, tags = [], body = '' } = Astro.props;
+const {
+  id,
+  title,
+  description,
+  pubDate,
+  tags = [],
+  body = '',
+  cover,
+  coverFrom,
+  coverTo,
+} = Astro.props;
 const minutes = readingTime(body);
+const hashed = coverGradient(title);
+const gradient = { from: coverFrom ?? hashed.from, to: coverTo ?? hashed.to };
+const fullDate = formatDate(pubDate);
+const day = String(pubDate.getDate()).padStart(2, '0');
+const month = `${String(pubDate.getMonth() + 1).padStart(2, '0')} 月`;
 ---
 
-<li class="post-card">
+<li class="post-card reveal" data-post-id={id}>
   <a class="post-card__link" href={`/blog/${id}/`}>
-    <h2 class="post-card__title">{title}</h2>
-    <p class="post-card__desc">{description}</p>
-    <div class="post-meta">
-      <span class="post-meta__item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-          <path d="M16 2v4M8 2v4M3 10h18"></path>
-        </svg>
-        <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
-      </span>
-      <span class="post-meta__item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="9"></circle>
-          <path d="M12 7v5l3 2"></path>
-        </svg>
-        约 {minutes} 分钟
-      </span>
-      {
-        tags.length > 0 && (
-          <span class="post-meta__item">
-            {tags.slice(0, 4).map((t) => (
-              <span class="tag">{t}</span>
-            ))}
-          </span>
-        )
-      }
+    <div
+      class="post-card__cover"
+      style={`--cover-from:${gradient.from};--cover-to:${gradient.to}`}
+    >
+      {cover && <img src={cover} alt="" loading="lazy" decoding="async" />}
+      <time class="post-card__date" datetime={pubDate.toISOString()} title={fullDate}>
+        <span class="post-card__day" aria-hidden="true">{day}</span>
+        <span class="post-card__month" aria-hidden="true">{month}</span>
+        <span class="visually-hidden">{fullDate}</span>
+      </time>
+    </div>
+
+    <div class="post-card__main">
+      <h2 class="post-card__title">{title}</h2>
+      <p class="post-card__desc">{description}</p>
+      <div class="post-meta">
+        <span class="post-meta__item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 7v5l3 2"></path>
+          </svg>
+          约 {minutes} 分钟
+        </span>
+        {
+          tags.length > 0 && (
+            <span class="post-meta__item">
+              {tags.slice(0, 4).map((t) => (
+                <span class="tag">{t}</span>
+              ))}
+            </span>
+          )
+        }
+      </div>
     </div>
   </a>
 </li>

@@ -10,8 +10,8 @@
     "build": "astro build",
     "preview": "node scripts/serve.mjs 4321 .edgeone/assets",
     "check": "astro check",
-    "verify": "node scripts/verify-build.mjs && node scripts/smoke-test.mjs",
-    "test:fn": "node scripts/test-comments-fn.mjs && node scripts/test-ratelimit.mjs"
+    "verify": "node scripts/verify-all.mjs",
+    "test:fn": "node scripts/test-comments-fn.mjs && node scripts/test-likes-fn.mjs && node scripts/test-ratelimit.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

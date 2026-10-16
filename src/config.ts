@@ -2,27 +2,43 @@
  * 站点级配置：改这里就能换掉全站文案，不必翻模板。
  */
 export const SITE = {
-  title: 'DeepWork',
+  title: 'Duhui Blog',
   /** 首页大标题 */
-  heading: 'DeepWork',
-  description: '记录技术、思考与生活的地方。',
-  author: '站长',
+  heading: 'Blog',
+  description: '记录生活还有思想的地方。',
+  author: '渐鸿.',
   /** 页脚版权起始年份 */
   since: 2026,
-  /** 每页文章数 */
+  /** 首页「最新文章」显示几条；完整列表在 /posts/ */
   pageSize: 6,
   /** 导航栏；如需增删改这里即可 */
   nav: [
     { text: '首页', href: '/' },
-    { text: '归档', href: '/archive' },
-    { text: '标签', href: '/tags' },
+    { text: '文章', href: '/posts' },
+    { text: '说说', href: '/notes' },
     { text: '关于', href: '/about' },
   ],
   /** 社交链接，留空则不显示 */
   social: {
-    github: '',   // 例: 'https://github.com/yourname'
-    email: '',    // 例: 'you@example.com'
+    github: 'https://github.com/hhhhaq1',   // 例: 'https://github.com/yourname'
+    email: 'q1364825940@163.com',    // 例: 'you@example.com'
     rss: '/rss.xml',
+  },
+  /**
+   * 首页个人名片 + 侧栏「关于我」。
+   * 这是整站最像「你」的地方，建议都填上。
+   */
+  profile: {
+    /** 头像：放 public/ 下的图片路径，例如 '/avatar.jpg'。留空则用下面的文字生成圆形色块 */
+    avatar: '/head.jpg',
+    /** 没有头像图时，圆形色块里显示的字。留空则取站点名首字 */
+    avatarText: '',
+    /** 站名旁的小状态徽章，留空则不显示 */
+    status: '摸鱼中',
+    /** 侧栏「关于我」的自我介绍，支持多句 */
+    bio: '白天当牛马，抽空写点别的。长文放在文章里，碎片放在说说里。',
+    /** 所在地，留空则不显示 */
+    location: '北京',
   },
   /**
    * 评论系统开关
@@ -44,7 +60,152 @@ export const SITE = {
       loading: 'lazy',
     },
   },
+  /**
+   * 点赞开关
+   * - 'api'  : 调用自建 EdgeOne 边缘函数 /api/likes，赞数存在 KV 里，全站可见（推荐）
+   * - 'none' : 不显示点赞按钮
+   *
+   * 用 'api' 时需要在 EdgeOne 控制台绑定一个 KV 命名空间。
+   * 点赞会优先用名为 `likes_kv` 的绑定；没绑就自动复用评论的 `comments_kv`，
+   * 所以**只要评论能跑，点赞不用额外配置**。
+   *
+   * 注意：边缘函数只在 EdgeOne 运行时存在。本地 `npm run dev` 下
+   * /api/likes 是 404，点赞按钮会自动隐藏（不会显示一个点了没反应的按钮）。
+   * 逻辑自测：npm run test:fn
+   */
+  likes: {
+    mode: 'api',
+  },
 } as const;
+
+/**
+ * 个性化组件开关。
+ * 不想用某个效果就把它设为 false——对应的脚本会直接跳过，
+ * 页面上的相关 DOM 也不会渲染。所有效果都不依赖后端。
+ */
+export const EFFECTS: Record<
+  | 'readingProgress'
+  | 'tocHighlight'
+  | 'lightbox'
+  | 'typewriter'
+  | 'scrollReveal'
+  | 'cursorGlow'
+  | 'search'
+  | 'noteCategoryFilter',
+  boolean
+> = {
+  /** 文章页顶部阅读进度条 + 右下角带进度环的返回顶部按钮 */
+  readingProgress: true,
+  /** 文章目录：滚动时自动高亮当前章节，宽屏吸附在正文右侧 */
+  tocHighlight: true,
+  /** 点击正文图片全屏放大，支持 ESC 关闭、左右键切换 */
+  lightbox: true,
+  /** 首页 Hero 副标题打字机效果 */
+  typewriter: true,
+  /** 元素进入视口时上浮淡入 */
+  scrollReveal: true,
+  /** 光标跟随的柔和光斑（仅桌面端，触屏与减少动效时不启用） */
+  cursorGlow: true,
+  /** 「文章」页的搜索框：静态站也能搜正文，索引在构建时生成 */
+  search: true,
+  /** 「说说」页顶部的分类筛选栏（喝酒 / 读书 / 旅行 / 杂项） */
+  noteCategoryFilter: true,
+};
+
+/**
+ * 文章封面的渐变色板。
+ * 按标题哈希取一组，所以同一篇文章永远得到同一套颜色，改标题才会变。
+ * 想换成自己的照片：在文章 frontmatter 里写 cover: '/images/covers/xxx.jpg' 即可覆盖。
+ */
+export const COVER_GRADIENTS: readonly (readonly [string, string])[] = [
+  ['#6366f1', '#a855f7'], // 靛蓝 → 紫
+  ['#0ea5e9', '#06b6d4'], // 天蓝 → 青
+  ['#14b8a6', '#22c55e'], // 蓝绿 → 翠绿
+  ['#f59e0b', '#f97316'], // 琥珀 → 橙
+  ['#ec4899', '#f43f5e'], // 粉 → 玫红
+  ['#8b5cf6', '#d946ef'], // 紫 → 品红
+  ['#3b82f6', '#6366f1'], // 蓝 → 靛
+  ['#84cc16', '#14b8a6'], // 黄绿 → 蓝绿
+];
+
+/**
+ * 说说分类。
+ *
+ * - 数组顺序 = 说说页筛选栏的排列顺序
+ * - `color` 只用来画分类小圆点和徽章底色，**不当文字颜色用**（这些饱和度当文字对比度不够）
+ * - 想加分类就在这里加一行；就算不加，说说里直接写也能用，只是颜色走默认灰
+ * - 「杂项」建议放在最后，它是兜底分类
+ */
+export const NOTE_CATEGORIES: readonly { name: string; color: string }[] = [
+  { name: '喝酒', color: '#f59e0b' },
+  { name: '读书', color: '#8b5cf6' },
+  { name: '旅行', color: '#0ea5e9' },
+  { name: '杂项', color: '#94a3b8' },
+];
+
+/** 没在 NOTE_CATEGORIES 里登记过的分类用它 */
+export const CATEGORY_FALLBACK_COLOR = '#94a3b8';
+
+/** 取分类对应的颜色 */
+export function categoryColor(name: string): string {
+  return NOTE_CATEGORIES.find((c) => c.name === name)?.color ?? CATEGORY_FALLBACK_COLOR;
+}
+
+/** 分类排序权重：登记过的按登记顺序，没登记的排在最后 */
+export function categoryOrder(name: string): number {
+  const i = NOTE_CATEGORIES.findIndex((c) => c.name === name);
+  return i === -1 ? NOTE_CATEGORIES.length : i;
+}
+
+/** djb2 字符串哈希，够稳定也够快 */
+function hashCode(text: string): number {
+  let h = 5381;
+  for (let i = 0; i < text.length; i++) {
+    h = ((h << 5) + h + text.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+/** 由标题（或任意种子）取一组封面渐变色 */
+export function coverGradient(seed: string): { from: string; to: string } {
+  const [from, to] = COVER_GRADIENTS[hashCode(seed) % COVER_GRADIENTS.length];
+  return { from, to };
+}
+
+/**
+ * 给一整列文章分配封面渐变。
+ * 单篇用哈希是稳定的（改标题才换色），但两篇撞到同一组时会挨在一起很难看，
+ * 所以这里在列表层面做一次去重：与上一张重复就顺延一格。
+ */
+export function assignCovers(titles: string[]): { from: string; to: string }[] {
+  const total = COVER_GRADIENTS.length;
+  let prev = -1;
+  return titles.map((title) => {
+    let i = hashCode(title) % total;
+    if (i === prev) i = (i + 1) % total;
+    prev = i;
+    const [from, to] = COVER_GRADIENTS[i];
+    return { from, to };
+  });
+}
+
+/** 圆形头像里显示的字：优先 profile.avatarText，其次站点名首字 */
+export function avatarText(): string {
+  const raw = SITE.profile.avatarText || SITE.heading || SITE.author;
+  return raw.trim().slice(0, 1) || '·';
+}
+
+/** 把数字转成中文习惯的紧凑写法：12000 → 1.2 万 */
+export function compactNumber(n: number): string {
+  if (n < 10000) return String(n);
+  return `${(n / 10000).toFixed(1).replace(/\.0$/, '')} 万`;
+}
+
+/** 从建站年份 1 月 1 日算起的天数 */
+export function daysSince(iso: string | number): number {
+  const start = new Date(Number(iso), 0, 1).getTime();
+  return Math.max(1, Math.floor((Date.now() - start) / 86400000) + 1);
+}
 
 /** 格式化日期为 YYYY-MM-DD */
 export function formatDate(date: Date): string {
@@ -52,6 +213,27 @@ export function formatDate(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+}
+
+/** 格式化日期时间为「YYYY-MM-DD HH:mm」，说说的语境里时间点比日期更重要 */
+export function formatDateTime(date: Date): string {
+  const h = String(date.getHours()).padStart(2, '0');
+  const min = String(date.getMinutes()).padStart(2, '0');
+  return `${formatDate(date)} ${h}:${min}`;
+}
+
+/** 相对时间，例如「3 小时前」「2 天前」，超过 30 天回退成具体日期 */
+export function fromNow(date: Date): string {
+  const diff = Date.now() - date.valueOf();
+  if (diff < 0) return formatDate(date);
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return '刚刚';
+  if (min < 60) return `${min} 分钟前`;
+  const hour = Math.floor(min / 60);
+  if (hour < 24) return `${hour} 小时前`;
+  const day = Math.floor(hour / 24);
+  if (day < 30) return `${day} 天前`;
+  return formatDate(date);
 }
 
 /** 把标题转成可用于锚点的 slug */

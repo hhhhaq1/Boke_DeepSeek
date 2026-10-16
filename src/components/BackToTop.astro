@@ -1,0 +1,32 @@
+---
+/**
+ * 返回顶部按钮。
+ * 滚过 400px 后出现，外圈进度环显示当前阅读位置，
+ * 具体逻辑见 src/scripts/enhance.ts 的 initBackToTop。
+ */
+---
+
+<button
+  class="back-to-top"
+  type="button"
+  data-back-to-top
+  aria-label="回到顶部"
+  title="回到顶部"
+>
+  <svg class="back-to-top__ring" viewBox="0 0 44 44" aria-hidden="true">
+    <circle class="back-to-top__track" cx="22" cy="22" r="19"></circle>
+    <circle class="back-to-top__progress" cx="22" cy="22" r="19" data-back-to-top-ring></circle>
+  </svg>
+  <svg
+    class="back-to-top__arrow"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M12 19V5M5 12l7-7 7 7"></path>
+  </svg>
+</button>

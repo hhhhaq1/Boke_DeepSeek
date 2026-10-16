@@ -124,10 +124,10 @@ async function shoot(name, url, { theme, height = 1200, fullPage = false } = {})
   console.log(`✓ ${name}.png  (${(fs.statSync(file).size / 1024).toFixed(0)} KB)`);
 }
 
-await shoot('light-home', `${BASE}/`, { theme: 'light' });
-await shoot('dark-home', `${BASE}/`, { theme: 'dark' });
-await shoot('dark-post', `${BASE}/blog/astro-blog-guide/`, { theme: 'dark' });
-await shoot('mobile-home', `${BASE}/`, { theme: 'light', height: 900 });
+await shoot('light-home', `${BASE}/`, { theme: 'glass' });
+await shoot('dark-home', `${BASE}/`, { theme: 'neon' });
+await shoot('dark-post', `${BASE}/blog/astro-blog-guide/`, { theme: 'neon' });
+await shoot('mobile-home', `${BASE}/`, { theme: 'glass', height: 900 });
 
 // 移动端：窄视口
 await cdp.send('Emulation.setDeviceMetricsOverride',

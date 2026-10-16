@@ -1,0 +1,44 @@
+---
+/**
+ * 点赞按钮。
+ *
+ * 服务端只渲染一个「空壳」，且带 `hidden`——因为赞数在构建时不可能知道，
+ * 必须等浏览器拉到 /api/likes 才能显示。拉不到（例如本地 astro dev 下
+ * 边缘函数不存在）就一直隐藏，而不是给用户一个点了没反应的按钮。
+ *
+ * 交互逻辑在 src/scripts/enhance.ts 的 initLikes()：
+ * 一次把页面上所有 slug 批量问一遍，避免说说列表页发 N 个请求。
+ */
+import { SITE } from '../config';
+
+interface Props {
+  /** 文章用 post.id，说说用 note.id（即文件名，不含扩展名） */
+  slug: string;
+  /** 'post' = 文章末尾的独立按钮；'note' = 说说卡片里的小按钮 */
+  variant?: 'post' | 'note';
+}
+
+const { slug, variant = 'post' } = Astro.props;
+const enabled = SITE.likes.mode !== 'none';
+const label = variant === 'post' ? '觉得有用' : '赞';
+---
+
+{
+  enabled && (
+    <div class:list={['like', `like--${variant}`]} data-like data-slug={slug} hidden>
+      <button
+        class="like__btn"
+        type="button"
+        data-like-btn
+        aria-pressed="false"
+        title={`${label}（赞数存在你自己的服务器上）`}
+      >
+        <svg class="like__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 20.4 4.9 13.3a4.6 4.6 0 0 1 0-6.5 4.6 4.6 0 0 1 6.5 0l.6.6.6-.6a4.6 4.6 0 0 1 6.5 0 4.6 4.6 0 0 1 0 6.5Z" />
+        </svg>
+        <span class="like__count" data-like-count>0</span>
+        <span class="like__label">{label}</span>
+      </button>
+    </div>
+  )
+}

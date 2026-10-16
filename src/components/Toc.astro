@@ -1,0 +1,41 @@
+---
+/**
+ * 文章目录。
+ * 宽屏下吸附在正文右侧，窄屏下折叠到正文上方；
+ * 滚动时由 src/scripts/enhance.ts 负责高亮当前章节。
+ */
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+  /** 少于这个数量就不显示目录（默认 3 条，太少没有导航价值） */
+  minItems?: number;
+}
+
+const { headings, minItems = 3 } = Astro.props;
+const items = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const visible = items.length >= minItems;
+---
+
+{
+  visible && (
+    <nav class="toc" aria-labelledby="toc-title" data-toc>
+      <p class="toc__title" id="toc-title">
+        目录
+      </p>
+      <ul class="toc__list">
+        {items.map((h) => (
+          <li class:list={['toc__item', `toc__item--h${h.depth}`]}>
+            <a class="toc__link" href={`#${h.slug}`}>
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}

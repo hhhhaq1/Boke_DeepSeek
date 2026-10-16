@@ -1,46 +1,67 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import HomeHero from '../components/HomeHero.astro';
+import HomeSidebar from '../components/HomeSidebar.astro';
 import PostCard from '../components/PostCard.astro';
-import Pagination from '../components/Pagination.astro';
-import { SITE } from '../config';
-import { getSortedPosts, paginate, pageCount } from '../utils/posts';
+import { SITE, compactNumber, daysSince, assignCovers } from '../config';
+import { getSortedPosts } from '../utils/posts';
+import { getSortedNotes } from '../utils/notes';
 
 const posts = await getSortedPosts();
-const page = 1;
-const list = paginate(posts, page);
-const total = pageCount(posts.length);
+const notes = await getSortedNotes();
+/** 首页只放最新的几条，完整列表在 /posts/，所以这里不再分页 */
+const list = posts.slice(0, SITE.pageSize);
+/** 整页统一分配封面渐变，避免相邻两张撞色 */
+const covers = assignCovers(list.map((p) => p.data.title));
+
+/** 名片下方的统计带：只统计已发布内容，草稿不计入 */
+const words = posts.reduce(
+  (sum, p) => sum + (p.body ?? '').replace(/\s/g, '').length,
+  0
+);
+const stats = [
+  { label: '文章', value: String(posts.length) },
+  { label: '说说', value: String(notes.length) },
+  { label: '字数', value: compactNumber(words) },
+  { label: '运行', value: `${daysSince(SITE.since)} 天` },
+];
 ---
 
 <BaseLayout description={SITE.description}>
-  {
-    page === 1 && (
-      <section class="hero">
-        <h1 class="hero__title">{SITE.heading}</h1>
-        <p class="hero__desc">{SITE.description}</p>
-      </section>
-    )
-  }
+  <HomeHero stats={stats} />
 
-  {
-    list.length > 0 ? (
-      <ul class="post-list">
-        {list.map((post) => (
-          <PostCard
-            id={post.id}
-            title={post.data.title}
-            description={post.data.description}
-            pubDate={post.data.pubDate}
-            tags={post.data.tags}
-            body={post.body ?? ''}
-          />
-        ))}
-      </ul>
-    ) : (
-      <p class="empty">
-        还没有文章。在 <code>src/content/blog/</code> 下新建一个 <code>.md</code> 文件就能开始写作。
-      </p>
-    )
-  }
+  <div class="home-layout">
+    <div class="home-main">
+      <div class="section-head" id="posts">
+        <h2 class="section-head__title">最新文章</h2>
+        <a class="section-head__more" href="/posts/">全部 {posts.length} 篇</a>
+      </div>
 
-  <Pagination current={page} total={total} base="/" />
+      {
+        list.length > 0 ? (
+          <ul class="post-list">
+            {list.map((post, i) => (
+              <PostCard
+                id={post.id}
+                title={post.data.title}
+                description={post.data.description}
+                pubDate={post.data.pubDate}
+                tags={post.data.tags}
+                body={post.body ?? ''}
+                cover={post.data.cover}
+                coverFrom={covers[i].from}
+                coverTo={covers[i].to}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p class="empty">
+            还没有文章。在 <code>src/content/blog/</code> 下新建一个 <code>.md</code> 文件就能开始写作。
+          </p>
+        )
+      }
+    </div>
+
+    <HomeSidebar />
+  </div>
 </BaseLayout>

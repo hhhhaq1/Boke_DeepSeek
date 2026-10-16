@@ -1,0 +1,101 @@
+---
+/**
+ * 说说卡片：头像 + 昵称 + 时间/地点 + 正文 + 九宫格配图 + 标签。
+ *
+ * 图片布局由数量决定（见 utils/notes.ts 的 gridKind）：
+ *   1 张 → 单张大图（限宽，不铺满）   2 张 → 两列
+ *   4 张 → 2×2 正方形               3 张 / 5–9 张 → 三列正方形
+ */
+import { render } from 'astro:content';
+import LikeButton from './LikeButton.astro';
+import { formatDateTime, categoryColor, SITE } from '../config';
+import { gridKind, type Note } from '../utils/notes';
+
+interface Props {
+  note: Note;
+}
+
+const { note } = Astro.props;
+const { Content } = await render(note);
+
+const { pubDate, author, location, mood, images, tags, pinned, category } =
+  note.data;
+const kind = gridKind(images.length);
+const catColor = categoryColor(category);
+/** 用昵称首字做头像，省掉一个图片依赖 */
+const initial = author.trim().slice(0, 1) || '·';
+const showLikes = SITE.likes.mode !== 'none';
+---
+
+<article
+  class:list={['note', 'reveal', { 'note--pinned': pinned }]}
+  id={`note-${note.id}`}
+  data-cat={category}
+>
+  <header class="note__head">
+    <span class="note__avatar" aria-hidden="true">{initial}</span>
+
+    <div class="note__who">
+      <span class="note__author">
+        {author}
+        {pinned && <span class="note__pin">置顶</span>}
+        <span class="note__cat" style={`--cat:${catColor}`}>
+          {category}
+        </span>
+      </span>
+      <span class="note__sub">
+        <time datetime={pubDate.toISOString()}>{formatDateTime(pubDate)}</time>
+        {location && <span class="note__loc">{location}</span>}
+      </span>
+    </div>
+
+    {mood && <span class="note__mood" aria-hidden="true">{mood}</span>}
+  </header>
+
+  <div class="note__body">
+    <Content />
+  </div>
+
+  {
+    images.length === 1 ? (
+      <figure class="note__single">
+        <img src={images[0]} alt={`${author} 的说说配图`} loading="lazy" decoding="async" />
+      </figure>
+    ) : (
+      images.length > 1 && (
+        <ul class="note__grid" data-grid={kind}>
+          {images.map((src, i) => (
+            <li>
+              <img
+                src={src}
+                alt={`${author} 的说说配图 ${i + 1}`}
+                loading="lazy"
+                decoding="async"
+              />
+            </li>
+          ))}
+        </ul>
+      )
+    )
+  }
+
+  {
+    (tags.length > 0 || showLikes) && (
+      <div class="note__foot">
+        {tags.length > 0 && (
+          <ul class="tag-list note__tags">
+            {tags.map((tag) => (
+              <li>
+                <span class="tag">#{tag}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* 说说的标识用文件名（note.id）——说说没有独立网址，只能用这个。
+            所以**改了说说文件名，它的赞就丢了**。 */}
+        {showLikes && <LikeButton slug={note.id} variant="note" />}
+      </div>
+    )
+  }
+</article>

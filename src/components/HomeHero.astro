@@ -1,0 +1,81 @@
+---
+/**
+ * 首页个人名片头部。
+ *
+ * 左边是「谁」：头像 + 站名 + 状态徽章 + 打字机副标题；
+ * 右边是「去哪」：三个快捷入口；
+ * 下面一条统计带，把站点的体量摊开，避免 Hero 大片留白。
+ */
+import { SITE, EFFECTS, avatarText } from '../config';
+
+interface Stat {
+  label: string;
+  value: string;
+}
+
+interface Props {
+  stats: Stat[];
+}
+
+const { stats } = Astro.props;
+const { avatar, status } = SITE.profile;
+const { github, email, rss } = SITE.social;
+const initial = avatarText();
+---
+
+<section class="home-hero">
+  <div class="home-hero__top">
+    <div class="home-hero__id">
+      <span class="home-hero__avatar" aria-hidden="true">
+        {avatar ? <img src={avatar} alt="" /> : initial}
+      </span>
+
+      <div class="home-hero__who">
+        <div class="home-hero__name-row">
+          <h1 class="home-hero__name">{SITE.heading}</h1>
+          {
+            status && (
+              <span class="home-hero__status">
+                <span class="home-hero__status-dot" aria-hidden="true" />
+                {status}
+              </span>
+            )
+          }
+        </div>
+        <p class="home-hero__desc" data-typewriter={EFFECTS.typewriter ? '' : undefined}>
+          {SITE.description}
+        </p>
+      </div>
+    </div>
+
+    <nav class="home-hero__actions" aria-label="快捷入口">
+      <a class="btn btn--primary" href="#posts">开始阅读</a>
+      <a class="btn" href="/notes/">说说</a>
+      {rss && <a class="btn" href={rss}>RSS</a>}
+    </nav>
+  </div>
+
+  <dl class="home-stats">
+    {
+      stats.map((s) => (
+        <div class="home-stat">
+          <dt class="home-stat__label">{s.label}</dt>
+          <dd class="home-stat__value">{s.value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  {
+    (github || email) && (
+      <p class="home-hero__contact">
+        {github && (
+          <a href={github} rel="noopener noreferrer" target="_blank">
+            GitHub
+          </a>
+        )}
+        {email && <a href={`mailto:${email}`}>邮箱</a>}
+      </p>
+    )
+  }
+</section>

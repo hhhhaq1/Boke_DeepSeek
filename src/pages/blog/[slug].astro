@@ -6,7 +6,9 @@ import type { GetStaticPaths } from 'astro';
 import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Comments from '../../components/Comments.astro';
-import { SITE, formatDate, readingTime } from '../../config';
+import Toc from '../../components/Toc.astro';
+import LikeButton from '../../components/LikeButton.astro';
+import { SITE, EFFECTS, formatDate, readingTime } from '../../config';
 import { getSortedPosts, type Post } from '../../utils/posts';
 
 export const getStaticPaths: GetStaticPaths = async () => {
@@ -31,9 +33,9 @@ const { post, prev, next } = Astro.props;
 const { Content, headings } = await render(post);
 const minutes = readingTime(post.body ?? '');
 const showComments = post.data.comments && SITE.comments.mode !== 'none';
-
-// 只取 h2 / h3 生成目录
-const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+// 只统计 h2 / h3；少于 3 条就没有导航价值，右侧栏也一并收起
+const tocCount = headings.filter((h) => h.depth === 2 || h.depth === 3).length;
+const showToc = EFFECTS.tocHighlight && tocCount >= 3;
 ---
 
 <BaseLayout
@@ -42,63 +44,68 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
   type="article"
   publishedTime={post.data.pubDate.toISOString()}
 >
-  <article>
-    <header class="article-header">
-      <h1>{post.data.title}</h1>
-      {post.data.description && <p class="article-header__desc">{post.data.description}</p>}
+  {EFFECTS.readingProgress && (
+    <div class="reading-progress" aria-hidden="true">
+      <span class="reading-progress__bar" data-reading-progress></span>
+    </div>
+  )}
 
-      <div class="post-meta">
-        <span class="post-meta__item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2"></rect>
-            <path d="M16 2v4M8 2v4M3 10h18"></path>
-          </svg>
-          <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
-        </span>
-        <span class="post-meta__item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="9"></circle>
-            <path d="M12 7v5l3 2"></path>
-          </svg>
-          约 {minutes} 分钟
-        </span>
-        <span class="post-meta__item">by {post.data.author}</span>
-      </div>
+  <div class:list={['article-grid', { 'article-grid--no-toc': !showToc }]}>
+    <div class="article-main">
+      <article>
+        <header class="article-header">
+          <h1>{post.data.title}</h1>
+          {post.data.description && <p class="article-header__desc">{post.data.description}</p>}
+
+          <div class="post-meta">
+            <span class="post-meta__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                <path d="M16 2v4M8 2v4M3 10h18"></path>
+              </svg>
+              <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+            </span>
+            <span class="post-meta__item">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3 2"></path>
+              </svg>
+              约 {minutes} 分钟
+            </span>
+            <span class="post-meta__item">by {post.data.author}</span>
+          </div>
+
+          {
+            post.data.tags.length > 0 && (
+              <ul class="tag-list" style="margin-top:.75rem">
+                {post.data.tags.map((tag) => (
+                  <li>
+                    <span class="tag">{tag}</span>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
+        </header>
+
+        <div class="prose">
+          <Content />
+        </div>
+      </article>
 
       {
-        post.data.tags.length > 0 && (
-          <ul class="tag-list" style="margin-top:.75rem">
-            {post.data.tags.map((tag) => (
-              <li>
-                <a class="tag" href={`/tags/${encodeURIComponent(tag)}/`}>
-                  {tag}
-                </a>
-              </li>
-            ))}
-          </ul>
+        SITE.likes.mode !== 'none' && (
+          <div class="post-like">
+            <LikeButton slug={post.id} variant="post" />
+          </div>
         )
       }
-    </header>
-
-    {
-      toc.length > 2 && (
-        <nav aria-label="文章目录" style="margin-bottom:2rem;padding:1rem 1.25rem;border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-soft);max-width:var(--measure)">
-          <p style="margin:0 0 .5rem;font-weight:600;font-size:.875rem">目录</p>
-          <ul style="margin:0;padding-left:1.1rem;font-size:.9375rem;list-style:disc">
-            {toc.map((h) => (
-              <li style={h.depth === 3 ? 'margin-left:1rem;list-style:circle' : ''}>
-                <a href={`#${h.slug}`}>{h.text}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )
-    }
-
-    <div class="prose">
-      <Content />
     </div>
-  </article>
+
+    <aside class="article-aside">
+      {showToc && <Toc headings={headings} />}
+    </aside>
+  </div>
 
   {
     (prev || next) && (

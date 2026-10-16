@@ -1,0 +1,86 @@
+---
+/**
+ * 说说页：/notes
+ * 按「年-月」分组的短内容时间轴。新增说说只需在 src/content/notes/ 下丢一个 .md。
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NoteCard from '../components/NoteCard.astro';
+import { EFFECTS } from '../config';
+import { getSortedNotes, groupNotesByMonth, collectNoteCategories } from '../utils/notes';
+
+const notes = await getSortedNotes();
+const groups = groupNotesByMonth(notes);
+const categories = collectNoteCategories(notes);
+const imageCount = notes.reduce((sum, n) => sum + n.data.images.length, 0);
+/** 只有一个分类时筛选没意义，不显示筛选栏 */
+const showFilter = EFFECTS.noteCategoryFilter && categories.length > 1;
+---
+
+<BaseLayout
+  title="说说"
+  description="随手记下的片段：几句话，几张图。"
+>
+  <header class="page-header">
+    <h1>说说</h1>
+    <p>随手记下的片段——几句话，几张图。比文章轻，比朋友圈久。</p>
+
+    {
+      notes.length > 0 && (
+        <p class="notes-stat">
+          <span data-notes-count>
+            共 <strong>{notes.length}</strong> 条
+          </span>
+          {imageCount > 0 && <> · <strong>{imageCount}</strong> 张图</>}
+        </p>
+      )
+    }
+  </header>
+
+  {
+    showFilter && (
+      <div class="cat-filter" role="group" aria-label="按分类筛选说说">
+        <button class="cat-chip is-active" type="button" data-cat-chip="" aria-pressed="true">
+          全部
+          <span class="cat-chip__count">{notes.length}</span>
+        </button>
+
+        {categories.map((c) => (
+          <button
+            class="cat-chip"
+            type="button"
+            data-cat-chip={c.name}
+            aria-pressed="false"
+            style={`--cat:${c.color}`}
+          >
+            <span class="cat-chip__dot" aria-hidden="true" />
+            {c.name}
+            <span class="cat-chip__count">{c.count}</span>
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    groups.length > 0 ? (
+      <div class="notes-timeline">
+        {groups.map((group) => (
+          <section class="notes-month" aria-labelledby={`month-${group.key}`}>
+            <h2 class="notes-month__label" id={`month-${group.key}`}>
+              <time datetime={group.key}>{group.label}</time>
+            </h2>
+            <div class="notes-month__list">
+              {group.notes.map((note) => (
+                <NoteCard note={note} />
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    ) : (
+      <p class="empty">
+        还没有说说。在 <code>src/content/notes/</code> 下新建一个 <code>.md</code> 文件就能发第一条。
+      </p>
+    )
+  }
+</BaseLayout>

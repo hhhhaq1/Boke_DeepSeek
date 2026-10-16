@@ -1,0 +1,103 @@
+---
+/**
+ * 首页右侧信息栏：关于我 + 最新说说 + 标签。
+ *
+ * 数据自己取，页面不用传任何 props。窄屏时整栏会沉到文章列表下方。
+ */
+import { SITE, formatDate, avatarText } from '../config';
+import { getSortedNotes } from '../utils/notes';
+
+const notes = (await getSortedNotes()).slice(0, 2);
+
+const { avatar, bio, location } = SITE.profile;
+const { github, email, rss } = SITE.social;
+const initial = avatarText();
+
+/** 去掉 markdown 标记，取一段纯文本摘要 */
+function plain(markdown: string, max = 58): string {
+  const text = markdown
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[*_`>#~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+---
+
+<aside class="home-side" aria-label="站点信息">
+  <section class="side-card">
+    <h2 class="side-card__title">关于我</h2>
+
+    <div class="side-profile">
+      <span class="side-profile__avatar" aria-hidden="true">
+        {avatar ? <img src={avatar} alt="" /> : initial}
+      </span>
+      <div class="side-profile__meta">
+        <p class="side-profile__name">{SITE.author}</p>
+        {location && <p class="side-profile__loc">{location}</p>}
+      </div>
+    </div>
+
+    <p class="side-profile__bio">{bio}</p>
+
+    {
+      (github || email || rss) && (
+        <ul class="side-links">
+          {github && (
+            <li>
+              <a href={github} rel="noopener noreferrer" target="_blank">
+                GitHub
+              </a>
+            </li>
+          )}
+          {email && (
+            <li>
+              <a href={`mailto:${email}`}>邮箱</a>
+            </li>
+          )}
+          {rss && (
+            <li>
+              <a href={rss}>RSS</a>
+            </li>
+          )}
+        </ul>
+      )
+    }
+  </section>
+
+  {
+    notes.length > 0 && (
+      <section class="side-card">
+        <h2 class="side-card__title">
+          最新说说
+          <a class="side-card__more" href="/notes/">
+            全部
+          </a>
+        </h2>
+
+        <ul class="side-notes">
+          {notes.map((note) => (
+            <li class="side-note">
+              <a class="side-note__link" href={`/notes/#note-${note.id}`}>
+                <span class="side-note__text">{plain(note.body ?? '')}</span>
+                {note.data.images.length > 0 && (
+                  <span class="side-note__thumbs">
+                    {note.data.images.slice(0, 3).map((src) => (
+                      <img src={src} alt="" loading="lazy" decoding="async" />
+                    ))}
+                  </span>
+                )}
+              </a>
+              <time class="side-note__time" datetime={note.data.pubDate.toISOString()}>
+                {formatDate(note.data.pubDate)}
+              </time>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+</aside>
