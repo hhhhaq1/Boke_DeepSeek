@@ -3,6 +3,12 @@ node_modules/
 # pnpm 本地存储（若在本机开启了 store-dir 会生成在项目内）
 .pnpm-store/
 
+# 本项目是 pnpm 工程，锁文件认 pnpm-lock.yaml。
+# package-lock.json 一律忽略：在本机（Windows）用 npm 装机时生成的那份
+# 只记录了 Windows 侧的原生包，Linux 构建机装了会缺 @rollup/rollup-linux-x64-gnu，
+# 直接让 astro build 崩掉（npm/cli#4828）。交给构建机自己重新解析才对。
+package-lock.json
+
 # 构建产物
 dist/
 .edgeone/
