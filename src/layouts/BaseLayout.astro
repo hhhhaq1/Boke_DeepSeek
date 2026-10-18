@@ -27,7 +27,10 @@ const {
   noindex = false,
 } = Astro.props;
 
-const pageTitle = title ? `${title} — ${SITE.title}` : `${SITE.title} — ${SITE.description}`;
+/** 首页用「站名 · 短标语」，内页用「页面名 — 站名」 */
+const pageTitle = title
+  ? `${title} — ${SITE.title}`
+  : `${SITE.title} · ${SITE.tagline}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href;
 const ogImage = new URL('/og-default.svg', Astro.site ?? Astro.url.origin).href;
 ---

@@ -199,9 +199,14 @@ function initTypewriter() {
   const full = (el.textContent ?? '').trim();
   if (!full) return;
 
-  el.classList.add('is-typing');
-  if (reduceMotion) return;
+  // 系统开了「减少动效」：直接呈现完整文案，连光标都不要。
+  // 注意别加 is-typing——那会让光标一直闪下去。
+  if (reduceMotion) {
+    el.classList.add('is-done');
+    return;
+  }
 
+  el.classList.add('is-typing');
   el.textContent = '';
   let i = 0;
 
@@ -210,6 +215,8 @@ function initTypewriter() {
     if (i < full.length) {
       window.setTimeout(step, 52 + Math.random() * 46);
     } else {
+      // 打完就收掉光标：移除 is-typing 让 ::after 不再存在，再加 is-done 保持可见
+      el.classList.remove('is-typing');
       el.classList.add('is-done');
     }
   };

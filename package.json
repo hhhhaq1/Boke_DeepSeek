@@ -1,5 +1,5 @@
 {
-  "name": "deepwork-blog",
+  "name": "jianhong-blog",
   "type": "module",
   "version": "1.0.0",
   "private": true,
@@ -9,6 +9,7 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "node scripts/serve.mjs 4321 .edgeone/assets",
+    "studio": "node scripts/studio.mjs",
     "check": "astro check",
     "verify": "node scripts/verify-all.mjs",
     "test:fn": "node scripts/test-comments-fn.mjs && node scripts/test-likes-fn.mjs && node scripts/test-ratelimit.mjs"

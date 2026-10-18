@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import edgeone from '@edgeone/astro';
+import { devApiMock } from './scripts/dev-api.mjs';
 
 /**
  * 站点全局配置
@@ -46,5 +47,11 @@ export default defineConfig({
 
   devToolbar: {
     enabled: false,
+  },
+
+  // 本地开发时用内存版 /api 模拟点赞和评论（只在 dev 生效）。
+  // 线上由 functions/api/*.js 边缘函数提供，与本插件无关。
+  vite: {
+    plugins: [devApiMock()],
   },
 });

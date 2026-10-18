@@ -4,13 +4,13 @@
  *
  * 数据自己取，页面不用传任何 props。窄屏时整栏会沉到文章列表下方。
  */
-import { SITE, formatDate, avatarText } from '../config';
+import { SITE, formatDate, avatarText, categoryColor } from '../config';
 import { getSortedNotes } from '../utils/notes';
 
 const notes = (await getSortedNotes()).slice(0, 2);
 
 const { avatar, bio, location } = SITE.profile;
-const { github, email, rss } = SITE.social;
+const { github, email } = SITE.social;
 const initial = avatarText();
 
 /** 去掉 markdown 标记，取一段纯文本摘要 */
@@ -43,7 +43,7 @@ function plain(markdown: string, max = 58): string {
     <p class="side-profile__bio">{bio}</p>
 
     {
-      (github || email || rss) && (
+      (github || email) && (
         <ul class="side-links">
           {github && (
             <li>
@@ -55,11 +55,6 @@ function plain(markdown: string, max = 58): string {
           {email && (
             <li>
               <a href={`mailto:${email}`}>邮箱</a>
-            </li>
-          )}
-          {rss && (
-            <li>
-              <a href={rss}>RSS</a>
             </li>
           )}
         </ul>
@@ -81,7 +76,33 @@ function plain(markdown: string, max = 58): string {
           {notes.map((note) => (
             <li class="side-note">
               <a class="side-note__link" href={`/notes/#note-${note.id}`}>
+                {/* 分类 / 地点 / 心情在说说页才有，这里把它们带出来——
+                    这几项是首页最便宜的个人化：数据本来就有，只是没渲染 */}
+                <span class="side-note__meta">
+                  <span
+                    class="note__cat"
+                    style={`--cat:${categoryColor(note.data.category)}`}
+                  >
+                    {note.data.category}
+                  </span>
+                  {note.data.location && (
+                    <span class="note__loc">{note.data.location}</span>
+                  )}
+                  {note.data.mood && (
+                    <span class="side-note__mood" aria-hidden="true">
+                      {note.data.mood}
+                    </span>
+                  )}
+                  <time
+                    class="side-note__time"
+                    datetime={note.data.pubDate.toISOString()}
+                  >
+                    {formatDate(note.data.pubDate)}
+                  </time>
+                </span>
+
                 <span class="side-note__text">{plain(note.body ?? '')}</span>
+
                 {note.data.images.length > 0 && (
                   <span class="side-note__thumbs">
                     {note.data.images.slice(0, 3).map((src) => (
@@ -90,9 +111,6 @@ function plain(markdown: string, max = 58): string {
                   </span>
                 )}
               </a>
-              <time class="side-note__time" datetime={note.data.pubDate.toISOString()}>
-                {formatDate(note.data.pubDate)}
-              </time>
             </li>
           ))}
         </ul>

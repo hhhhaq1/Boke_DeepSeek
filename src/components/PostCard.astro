@@ -41,6 +41,15 @@ const gradient = { from: coverFrom ?? hashed.from, to: coverTo ?? hashed.to };
 const fullDate = formatDate(pubDate);
 const day = String(pubDate.getDate()).padStart(2, '0');
 const month = `${String(pubDate.getMonth() + 1).padStart(2, '0')} 月`;
+/**
+ * 卡片上只放能当主题用的标签。
+ * frontmatter 里偶尔会写 '1'、'2' 这类占位值，直接渲染就是两个没意义的胶囊，
+ * 所以这里过滤掉单字和纯数字，最多留 3 个。
+ */
+const cleanTags = tags
+  .map((t) => t.trim())
+  .filter((t) => t.length >= 2 && !/^\d+$/.test(t))
+  .slice(0, 3);
 ---
 
 <li class="post-card reveal" data-post-id={id}>
@@ -69,9 +78,9 @@ const month = `${String(pubDate.getMonth() + 1).padStart(2, '0')} 月`;
           约 {minutes} 分钟
         </span>
         {
-          tags.length > 0 && (
+          cleanTags.length > 0 && (
             <span class="post-meta__item">
-              {tags.slice(0, 4).map((t) => (
+              {cleanTags.map((t) => (
                 <span class="tag">{t}</span>
               ))}
             </span>

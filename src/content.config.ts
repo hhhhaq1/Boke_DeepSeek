@@ -1,5 +1,6 @@
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { SITE } from './config';
 
 /**
  * 博客文章集合
@@ -15,7 +16,7 @@ const blog = defineCollection({
     /** 最后更新日期，可选 */
     updatedDate: z.coerce.date().optional(),
     /** 作者 */
-    author: z.string().default('站长'),
+    author: z.string().default(SITE.author),
     /** 标签 */
     tags: z.array(z.string()).default([]),
     /** 封面图（public/ 或外链） */
@@ -42,8 +43,13 @@ const notes = defineCollection({
      * 不填默认归到「杂项」。写没登记过的分类也能用，只是颜色是默认灰。
      */
     category: z.string().max(12).default('杂项'),
-    /** 作者，一般不用填 */
-    author: z.string().default('站长'),
+    /** 作者，不填就用 src/config.ts 里的 SITE.author */
+    author: z.string().default(SITE.author),
+    /**
+     * 头像图片路径，例如 /images/avatar/me.webp（放在 public/ 下）。
+     * 不填就用作者名首字生成圆形色块。
+     */
+    avatar: z.string().optional(),
     /** 地点，可选，例如「杭州 · 西湖」 */
     location: z.string().max(60).optional(),
     /** 心情，一个 emoji，可选 */

@@ -3,7 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import HomeHero from '../components/HomeHero.astro';
 import HomeSidebar from '../components/HomeSidebar.astro';
 import PostCard from '../components/PostCard.astro';
-import { SITE, compactNumber, daysSince, assignCovers } from '../config';
+import { SITE, daysSince, assignCovers } from '../config';
 import { getSortedPosts } from '../utils/posts';
 import { getSortedNotes } from '../utils/notes';
 
@@ -14,16 +14,17 @@ const list = posts.slice(0, SITE.pageSize);
 /** 整页统一分配封面渐变，避免相邻两张撞色 */
 const covers = assignCovers(list.map((p) => p.data.title));
 
-/** 名片下方的统计带：只统计已发布内容，草稿不计入 */
-const words = posts.reduce(
-  (sum, p) => sum + (p.body ?? '').replace(/\s/g, '').length,
-  0
-);
+/**
+ * 名片下方的统计带。
+ *
+ * 每一项都指向一个真实页面——统计带是「内容地图」，不是装饰。
+ * 去掉了原来的「字数」：只有一篇文章时它会显示「18」，
+ * 等于在首屏主动告诉访客这里没东西可看。
+ */
 const stats = [
-  { label: '文章', value: String(posts.length) },
-  { label: '说说', value: String(notes.length) },
-  { label: '字数', value: compactNumber(words) },
-  { label: '运行', value: `${daysSince(SITE.since)} 天` },
+  { label: '文章', value: `${posts.length} 篇`, href: '/posts/' },
+  { label: '说说', value: `${notes.length} 条`, href: '/notes/' },
+  { label: '运行', value: `${daysSince(SITE.since)} 天`, href: '/about/' },
 ];
 ---
 

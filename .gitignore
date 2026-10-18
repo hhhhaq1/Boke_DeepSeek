@@ -34,3 +34,12 @@ Thumbs.db
 *.log
 npm-debug.log*
 pnpm-debug.log*
+
+# 本地 AI 工作区数据（不属于站点内容）
+.workbuddy-ai/
+
+# 写作台删除内容后的回收站（本地保留，不进仓库）
+.trash/
+
+# 本地开发数据（dev 版 /api 模拟存储）
+.local/

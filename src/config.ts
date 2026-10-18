@@ -2,11 +2,18 @@
  * 站点级配置：改这里就能换掉全站文案，不必翻模板。
  */
 export const SITE = {
-  title: 'Duhui Blog',
-  /** 首页大标题 */
-  heading: 'Blog',
+  /** 站名：Header 品牌、og:site_name、RSS 标题都用它 */
+  title: '渐鸿',
+  /**
+   * 首页大标题（H1）。
+   * 和站名保持一致——同一屏出现「Duhui Blog / Blog / 渐鸿.」三个名字
+   * 是模板感最重的一处，这里收敛成一个人。
+   */
+  heading: '渐鸿',
+  /** 首页 <title> 用的短标语，拼成「渐鸿 · 记录」 */
+  tagline: '记录',
   description: '记录生活还有思想的地方。',
-  author: '渐鸿.',
+  author: '渐鸿',
   /** 页脚版权起始年份 */
   since: 2026,
   /** 首页「最新文章」显示几条；完整列表在 /posts/ */
@@ -42,12 +49,15 @@ export const SITE = {
   },
   /**
    * 评论系统开关
-   * - 'giscus'  : GitHub Discussions，零后端（默认）
-   * - 'self'    : 自建 EdgeOne 边缘函数 + KV，国内访问快
+   * - 'self'    : 自建 EdgeOne 边缘函数 + KV（当前使用）
+   * - 'giscus'  : GitHub Discussions，零后端。注意：要求仓库是**公开**的
    * - 'none'    : 关闭评论
+   *
+   * 用 'self' 需要在 EdgeOne 控制台把 KV 命名空间绑定为 `comments_kv`，
+   * 点赞会复用同一个命名空间（绑定 `likes_kv` 可单独分开）。
    */
   comments: {
-    mode: 'giscus',
+    mode: 'self',
     giscus: {
       repo: '',            // 'yourname/yourrepo'
       repoId: '',
@@ -116,16 +126,20 @@ export const EFFECTS: Record<
  * 文章封面的渐变色板。
  * 按标题哈希取一组，所以同一篇文章永远得到同一套颜色，改标题才会变。
  * 想换成自己的照片：在文章 frontmatter 里写 cover: '/images/covers/xxx.jpg' 即可覆盖。
+ *
+ * 配色原则：只取「靛蓝 → 紫 → 青」这一小段冷色。
+ * 之前是 8 组高饱和彩虹色，随机抽到橙色时会和夜间主题的紫青底完全打架；
+ * 收敛到主题同色系后，列表整体有秩序，封面仍然每篇不同。
+ *
+ * 另外每条的两端都压得比较深：封面上压着白色的大号日期，
+ * 亮色端（比如 #0ea5e9）配白字的对比度只有 2.6:1，读不清。
+ * 现在四组对白字都在 5:1 以上，日期和标题一样能看清。
  */
 export const COVER_GRADIENTS: readonly (readonly [string, string])[] = [
-  ['#6366f1', '#a855f7'], // 靛蓝 → 紫
-  ['#0ea5e9', '#06b6d4'], // 天蓝 → 青
-  ['#14b8a6', '#22c55e'], // 蓝绿 → 翠绿
-  ['#f59e0b', '#f97316'], // 琥珀 → 橙
-  ['#ec4899', '#f43f5e'], // 粉 → 玫红
-  ['#8b5cf6', '#d946ef'], // 紫 → 品红
-  ['#3b82f6', '#6366f1'], // 蓝 → 靛
-  ['#84cc16', '#14b8a6'], // 黄绿 → 蓝绿
+  ['#4338ca', '#7c3aed'], // 靛蓝 → 紫
+  ['#1d4ed8', '#0369a1'], // 宝蓝 → 深天青
+  ['#6d28d9', '#9333ea'], // 紫罗兰 → 紫
+  ['#0e7490', '#0f766e'], // 青 → 蓝绿
 ];
 
 /**

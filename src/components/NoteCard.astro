@@ -18,7 +18,7 @@ interface Props {
 const { note } = Astro.props;
 const { Content } = await render(note);
 
-const { pubDate, author, location, mood, images, tags, pinned, category } =
+const { pubDate, author, avatar, location, mood, images, tags, pinned, category } =
   note.data;
 const kind = gridKind(images.length);
 const catColor = categoryColor(category);
@@ -33,7 +33,9 @@ const showLikes = SITE.likes.mode !== 'none';
   data-cat={category}
 >
   <header class="note__head">
-    <span class="note__avatar" aria-hidden="true">{initial}</span>
+    <span class="note__avatar" aria-hidden="true">
+      {avatar ? <img src={avatar} alt="" loading="lazy" decoding="async" /> : initial}
+    </span>
 
     <div class="note__who">
       <span class="note__author">

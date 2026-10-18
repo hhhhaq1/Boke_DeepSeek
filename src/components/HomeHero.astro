@@ -3,14 +3,18 @@
  * 首页个人名片头部。
  *
  * 左边是「谁」：头像 + 站名 + 状态徽章 + 打字机副标题；
- * 右边是「去哪」：三个快捷入口；
- * 下面一条统计带，把站点的体量摊开，避免 Hero 大片留白。
+ * 右边是「去哪」：一个主入口（全部文章）；
+ * 下面一条统计带——**每一格都是链接**，把"展示数字"变成"内容地图"。
+ *
+ * 联系方式（GitHub / 邮箱）只留在侧栏「关于我」里，不在首屏重复出现。
  */
 import { SITE, EFFECTS, avatarText } from '../config';
 
 interface Stat {
   label: string;
   value: string;
+  /** 统计项指向的页面；统计带是导航，不是纯展示 */
+  href: string;
 }
 
 interface Props {
@@ -19,7 +23,6 @@ interface Props {
 
 const { stats } = Astro.props;
 const { avatar, status } = SITE.profile;
-const { github, email, rss } = SITE.social;
 const initial = avatarText();
 ---
 
@@ -49,33 +52,18 @@ const initial = avatarText();
     </div>
 
     <nav class="home-hero__actions" aria-label="快捷入口">
-      <a class="btn btn--primary" href="#posts">开始阅读</a>
-      <a class="btn" href="/notes/">说说</a>
-      {rss && <a class="btn" href={rss}>RSS</a>}
+      <a class="btn btn--primary" href="/posts/">全部文章</a>
     </nav>
   </div>
 
-  <dl class="home-stats">
+  <nav class="home-stats" aria-label="内容导航">
     {
       stats.map((s) => (
-        <div class="home-stat">
-          <dt class="home-stat__label">{s.label}</dt>
-          <dd class="home-stat__value">{s.value}</dd>
-        </div>
+        <a class="home-stat" href={s.href}>
+          <span class="home-stat__label">{s.label}</span>
+          <span class="home-stat__value">{s.value}</span>
+        </a>
       ))
     }
-  </dl>
-
-  {
-    (github || email) && (
-      <p class="home-hero__contact">
-        {github && (
-          <a href={github} rel="noopener noreferrer" target="_blank">
-            GitHub
-          </a>
-        )}
-        {email && <a href={`mailto:${email}`}>邮箱</a>}
-      </p>
-    )
-  }
+  </nav>
 </section>

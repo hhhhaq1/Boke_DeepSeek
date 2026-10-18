@@ -503,7 +503,6 @@ html.is-theme-switching .post-card,
 html.is-theme-switching .post-nav__item,
 html.is-theme-switching .pagination a,
 html.is-theme-switching .pagination span,
-html.is-theme-switching .tag-cloud__item,
 html.is-theme-switching .mode-toggle,
 html.is-theme-switching .mode-toggle__knob {
   transition:
@@ -592,16 +591,6 @@ html.is-theme-switching .mode-toggle__knob {
   height: 0.4rem;
   border-radius: 50%;
   background: var(--accent);
-  animation: status-pulse 2.4s ease-in-out infinite;
-}
-@keyframes status-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.3;
-  }
 }
 
 .home-hero__desc {
@@ -615,14 +604,6 @@ html.is-theme-switching .mode-toggle__knob {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.home-hero__contact {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin: 1rem 0 0;
-  font-size: 0.875rem;
 }
 
 /* ---------- 通用按钮 ---------- */
@@ -662,31 +643,61 @@ html.is-theme-switching .mode-toggle__knob {
   opacity: 0.86;
 }
 
-/* ---------- 名片下方的统计带 ---------- */
+/* ---------- 名片下方的内容地图 ---------- */
+/* 每一格都是链接：数字是入口，不是装饰。
+   箭头只在 hover 时出现——平时保持安静，避免首屏出现三个抢眼的按钮 */
 .home-stats {
   display: grid;
-  /* auto-fit 而不是固定 4 列：增删统计项时列数自动跟着变，不用改 CSS */
-  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  /* auto-fit + 6.5rem：窄屏也能三格排成一行，不会变成「2 + 1」的残局 */
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
   gap: 0.75rem;
   margin: 2rem 0 0;
   padding: 0;
 }
 .home-stat {
+  display: block;
   padding: 0.7rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--bg-elev);
+  color: inherit;
+  transition:
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+.home-stat:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  text-decoration: none;
 }
 .home-stat__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
   font-size: 0.75rem;
   color: var(--text-faint);
 }
+.home-stat__label::after {
+  content: '→';
+  color: var(--accent);
+  opacity: 0;
+  transform: translateX(-3px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.home-stat:hover .home-stat__label::after {
+  opacity: 1;
+  transform: none;
+}
 .home-stat__value {
+  display: block;
   margin: 0.1rem 0 0;
   font-size: 1.25rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
+  color: var(--text);
 }
 
 /* ---------- 首页主副栏布局 ---------- */
@@ -842,13 +853,14 @@ html.is-theme-switching .mode-toggle__knob {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.25);
 }
 .post-card__day {
-  font-size: 2rem;
+  /* 日期是封面的主视觉，但它服务于标题——字号收在标题之下 */
+  font-size: 1.35rem;
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 .post-card__month {
-  margin-top: 0.28rem;
+  margin-top: 0.3rem;
   font-size: 0.6875rem;
   letter-spacing: 0.12em;
   opacity: 0.88;
@@ -859,10 +871,10 @@ html.is-theme-switching .mode-toggle__knob {
   padding-right: 0.55rem;
 }
 .post-card__title {
-  margin: 0 0 0.35rem;
-  font-size: 1.125rem;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+  margin: 0 0 0.4rem;
+  font-size: 1.35rem;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
 }
 .post-card__link:hover .post-card__title {
   color: var(--accent);
@@ -1016,6 +1028,21 @@ html.is-theme-switching .mode-toggle__knob {
 .side-note__link:hover .side-note__text {
   color: var(--accent);
 }
+/* 元信息一行：分类徽章 + 地点 + 心情，日期靠右 */
+.side-note__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.5rem;
+  margin-bottom: 0.45rem;
+  font-size: 0.7188rem;
+  color: var(--text-faint);
+}
+.side-note__mood {
+  font-size: 0.85rem;
+  line-height: 1;
+  user-select: none;
+}
 .side-note__text {
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -1039,11 +1066,11 @@ html.is-theme-switching .mode-toggle__knob {
   border-radius: 4px;
 }
 .side-note__time {
-  display: block;
-  margin-top: 0.45rem;
-  font-size: 0.7188rem;
+  margin-left: auto;
+  font-size: 0.6875rem;
   color: var(--text-faint);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 /* ---------- 标签 ---------- */
@@ -1565,7 +1592,6 @@ html.is-theme-switching .mode-toggle__knob {
 /* ---------- 预设专属增强 ---------- */
 
 /* 纸感：标题换衬线体，立刻有刊物感 */
-:root[data-theme='paper'] .hero__title,
 :root[data-theme='paper'] .page-header h1,
 :root[data-theme='paper'] .article-header h1,
 :root[data-theme='paper'] .post-card__title {
@@ -1592,7 +1618,6 @@ html.is-theme-switching .mode-toggle__knob {
 /* 图片玻璃：卡片真正做成毛玻璃，让底下的照片透出来 */
 :root[data-theme='glass'] .post-card,
 :root[data-theme='glass'] .post-nav__item,
-:root[data-theme='glass'] .tag-cloud__item,
 :root[data-theme='glass'] .comments__notice {
   background: rgba(255, 255, 255, 0.62);
   backdrop-filter: blur(14px) saturate(160%);
@@ -1610,7 +1635,6 @@ html.is-theme-switching .mode-toggle__knob {
 /* 卡片改半透明 + 毛玻璃，让背后的极光透出来，页面才有层次 */
 :root[data-theme='neon'] .post-card,
 :root[data-theme='neon'] .post-nav__item,
-:root[data-theme='neon'] .tag-cloud__item,
 :root[data-theme='neon'] .comments__notice {
   background: color-mix(in srgb, var(--bg-elev) 72%, transparent);
   backdrop-filter: blur(12px) saturate(140%);
@@ -1629,14 +1653,6 @@ html.is-theme-switching .mode-toggle__knob {
   box-shadow:
     0 0 0 1px var(--accent),
     0 6px 24px rgba(167, 139, 250, 0.18);
-}
-
-/* 标题带一点冷调渐变，强化霓虹感 */
-:root[data-theme='neon'] .hero__title {
-  background: linear-gradient(100deg, #e8e8f0 12%, #a78bfa 58%, #22d3ee 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
 }
 
 /* 页头毛玻璃加强，滚动时内容不会和极光糊在一起 */
@@ -1957,7 +1973,9 @@ body.is-lightbox-open {
 .js [data-typewriter] {
   visibility: hidden;
 }
-.js [data-typewriter].is-typing {
+/* is-typing = 正在打字；is-done = 打完（或减少动效时直接呈现） */
+.js [data-typewriter].is-typing,
+.js [data-typewriter].is-done {
   visibility: visible;
 }
 [data-typewriter].is-typing::after {
@@ -1968,12 +1986,11 @@ body.is-lightbox-open {
   margin-left: 3px;
   vertical-align: -0.14em;
   background: var(--accent);
-  animation: caret-blink 1.05s step-end infinite;
+  animation: caret-blink 1.2s step-end infinite;
 }
+/* 打完就彻底收掉光标，不再闪烁 */
 [data-typewriter].is-done::after {
-  opacity: 0;
-  animation: none;
-  transition: opacity 0.4s ease;
+  display: none;
 }
 @keyframes caret-blink {
   50% {
@@ -2171,6 +2188,14 @@ body.is-lightbox-open {
   font-weight: 600;
   line-height: 1;
   user-select: none;
+  overflow: hidden;
+}
+
+.note__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .note__who {
@@ -2366,7 +2391,8 @@ body.is-lightbox-open {
   main {
     padding-block: 1.5rem 3rem;
   }
-  /* 首页名片在窄屏竖排，统计带改成两列 */
+  /* 首页名片在窄屏竖排；统计带只有 3 项，继续三列排一行，
+     掉成「2 + 1」会让最后一项孤零零占满整行 */
   .home-hero {
     padding-block: 0.75rem 1.5rem;
     margin-bottom: 1.75rem;
@@ -2384,7 +2410,7 @@ body.is-lightbox-open {
     font-size: 1rem;
   }
   .home-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.6rem;
     margin-top: 1.5rem;
   }
