@@ -1,69 +1,227 @@
 ---
+/**
+ * 关于页：/about
+ *
+ * 内容全部来自 src/config.ts 的 SITE.profile / SITE.social，
+ * 改文字不需要动这个文件——去 config.ts 改就行。
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../config';
+import { SITE, formatDate, daysSince } from '../config';
+import { getSortedPosts } from '../utils/posts';
+import { getSortedNotes } from '../utils/notes';
+
+const { profile, social } = SITE;
+const { avatar, avatarText, bio, location, status } = profile;
+
+const posts = await getSortedPosts();
+const notes = await getSortedNotes();
+const running = daysSince(SITE.foundedAt);
+
+/** 头像文字：显式配置 > 作者名首字 */
+const initial = avatarText || SITE.author.charAt(0);
+
+/** 最新一条说说的日期，用来表达「这里还活着」 */
+const latest = notes[0]?.data.pubDate;
+
+const facts = [
+  { label: '在建', value: `${running} 天` },
+  { label: '文章', value: `${posts.length} 篇` },
+  { label: '说说', value: `${notes.length} 条` },
+];
 ---
 
-<BaseLayout title="关于" description="关于这个博客和写它的人">
-  <header class="page-header">
-    <h1>关于</h1>
-    <p>关于这个博客，以及写它的人</p>
-  </header>
+<BaseLayout title="关于" description={bio}>
+  <div class="page-narrow">
+    <header class="about-hero">
+      <span class="about-hero__avatar">
+        {avatar ? <img src={avatar} alt={SITE.author} width="72" height="72" /> : initial}
+      </span>
 
-  <div class="prose">
-    <h2>你好 👋</h2>
-    <p>
-      这里是 <strong>{SITE.title}</strong>，一个用来记录技术、思考和一些零散想法的地方。
-    </p>
+      <h1 class="about-hero__name">
+        {SITE.author}
+        {status && <span class="about-hero__status">{status}</span>}
+      </h1>
 
-    <h2>我在写什么</h2>
-    <p>
-      主要写 <strong>Web 开发</strong>相关的内容，偶尔涉及工具链、性能优化和工程实践。比起罗列 API，
-      我更想写清楚「为什么这么做」和「踩过哪些坑」。
-    </p>
+      {location && <p class="about-hero__loc">📍 {location}</p>}
 
-    <h2>这个站点是怎么搭的</h2>
-    <ul>
-      <li>
-        <strong>框架</strong>：<a href="https://astro.build" rel="noopener noreferrer" target="_blank"
-          >Astro</a
-        > —— 静态输出，默认零 JavaScript
-      </li>
-      <li>
-        <strong>托管</strong>：<a
-          href="https://pages.edgeone.ai"
-          rel="noopener noreferrer"
-          target="_blank">腾讯云 EdgeOne Pages</a
-        > —— 国内访问快，有免费额度
-      </li>
-      <li><strong>内容</strong>：Markdown 文件，存在 Git 仓库里</li>
-      <li><strong>评论</strong>：Giscus 或自建边缘函数，两种方案可切换</li>
-    </ul>
-    <p>
-      整个站点没有服务器、没有数据库，写作流程就是「写 Markdown → push → 自动部署」。
-    </p>
+      <p class="about-hero__bio">{bio}</p>
 
-    <h2>联系我</h2>
-    <p>有想法欢迎在文章下面留言{ SITE.social.email && '，或者发邮件给我' }。</p>
-    {
-      SITE.social.email && (
-        <p>
-          邮箱：<a href={`mailto:${SITE.social.email}`}>{SITE.social.email}</a>
-        </p>
-      )
-    }
-    {
-      SITE.social.github && (
-        <p>
-          GitHub：
-          <a href={SITE.social.github} rel="noopener noreferrer" target="_blank">
-            {SITE.social.github.replace(/^https?:\/\/(www\.)?github\.com\//, '@')}
-          </a>
-        </p>
-      )
-    }
+      <ul class="about-facts">
+        {facts.map((f) => (
+          <li class="about-fact">
+            <span class="about-fact__label">{f.label}</span>
+            <strong class="about-fact__value">{f.value}</strong>
+          </li>
+        ))}
+      </ul>
+    </header>
 
-    <blockquote>
-      <p>慢就是快，少即是多。</p>
-    </blockquote>
+    <div class="prose">
+      <h2>这里写什么</h2>
+      <p>
+        长文放在<a href="/posts/">文章</a>里，碎片放在<a href="/notes/">说说</a>里。
+        前者是坐下来认真写完的，后者是路上、车上、睡前随手记的——两者都不追求完整，
+        记下来主要是为了以后的自己还能看懂。
+      </p>
+      <p>
+        目前写得最多的是读书笔记和出去玩的事。技术方面懂一些，
+        但更想写清楚「为什么这么做」和「踩过哪些坑」，而不是罗列步骤。
+      </p>
+
+      <h2>这个站是怎么搭的</h2>
+      <p>
+        没有服务器，也没有数据库。文章就是仓库里的 Markdown 文件，
+        写完 push，托管平台自动构建上线——所以我只需要管内容，不用管运维。
+      </p>
+      <ul>
+        <li><strong>框架</strong>：Astro，构建时生成纯静态 HTML，默认不往浏览器塞 JavaScript</li>
+        <li><strong>托管</strong>：腾讯云 EdgeOne Pages，国内访问快，有免费额度</li>
+        <li><strong>评论与点赞</strong>：跑在平台自己的边缘函数上，数据存在 KV 里</li>
+        <li><strong>写作</strong>：本地有个写作台，填表单、传图，产出物和手写文件一模一样</li>
+      </ul>
+
+      <h2>找到我</h2>
+      <p>
+        文章和说说下面都能留言。想私下说也可以发邮件，我看到会回。
+      </p>
+      <ul class="about-contact">
+        {social.email && (
+          <li>
+            <span class="about-contact__label">邮箱</span>
+            <a href={`mailto:${social.email}`}>{social.email}</a>
+          </li>
+        )}
+        {social.github && (
+          <li>
+            <span class="about-contact__label">GitHub</span>
+            <a href={social.github} rel="noopener noreferrer" target="_blank">
+              {social.github.replace(/^https?:\/\/(www\.)?github\.com\//, '@')}
+            </a>
+          </li>
+        )}
+        {social.rss && (
+          <li>
+            <span class="about-contact__label">订阅</span>
+            <a href={social.rss}>RSS</a>
+          </li>
+        )}
+      </ul>
+
+      {
+        latest && (
+          <p class="about-last">
+            最近一次更新是 {formatDate(latest)}。
+          </p>
+        )
+      }
+
+      <blockquote>
+        <p>积少成多，滴水穿石。</p>
+      </blockquote>
+    </div>
   </div>
 </BaseLayout>
+
+<style>
+  /* 关于页专属样式只在这里，不进全局 CSS */
+  .about-hero {
+    text-align: center;
+    padding: 1.5rem 0 2.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+  .about-hero__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 1.75rem;
+    font-weight: 700;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .about-hero__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .about-hero__name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin: 0 0 0.4rem;
+    font-size: 1.5rem;
+  }
+  .about-hero__status {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .about-hero__loc {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-faint);
+  }
+  .about-hero__bio {
+    margin: 0 auto 1.5rem;
+    max-width: 30rem;
+    color: var(--text-soft);
+  }
+
+  .about-facts {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .about-fact {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .about-fact__label {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+  }
+  .about-fact__value {
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .about-contact {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+  }
+  .about-contact li {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+  .about-contact__label {
+    flex: 0 0 3.5rem;
+    font-size: 0.8125rem;
+    color: var(--text-faint);
+  }
+  .about-last {
+    font-size: 0.875rem;
+    color: var(--text-faint);
+  }
+
+  @media (max-width: 40rem) {
+    .about-facts {
+      gap: 1.25rem;
+    }
+  }
+</style>

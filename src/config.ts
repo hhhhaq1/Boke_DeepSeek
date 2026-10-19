@@ -3,7 +3,7 @@
  */
 export const SITE = {
   /** 站名：Header 品牌、og:site_name、RSS 标题都用它 */
-  title: '渐鸿',
+  title: '渐鸿的个人博客',
   /**
    * 首页大标题（H1）。
    * 和站名保持一致——同一屏出现「Duhui Blog / Blog / 渐鸿.」三个名字
@@ -16,6 +16,12 @@ export const SITE = {
   author: '渐鸿',
   /** 页脚版权起始年份 */
   since: 2026,
+  /**
+   * 建站日期（完整日期，用于首页「运行 N 天」统计）。
+   * 写成 YYYY-MM-DD，统计就会从这天开始算，而不是年初。
+   * 例：2026-10-15 建站，则当天显示 1 天，次日 2 天，以此类推。
+   */
+  foundedAt: '2026-10-15',
   /** 首页「最新文章」显示几条；完整列表在 /posts/ */
   pageSize: 6,
   /** 导航栏；如需增删改这里即可 */
@@ -209,16 +215,27 @@ export function avatarText(): string {
   return raw.trim().slice(0, 1) || '·';
 }
 
-/** 把数字转成中文习惯的紧凑写法：12000 → 1.2 万 */
-export function compactNumber(n: number): string {
-  if (n < 10000) return String(n);
-  return `${(n / 10000).toFixed(1).replace(/\.0$/, '')} 万`;
-}
+/**
+ * 从建站日期算起的天数。
+ *
+ * 接受两种写法：
+ *   - 数字年份：`2026`            → 该年 1 月 1 日起算
+ *   - 完整日期：`'2026-10-15'`    → 精确到当天
+ *
+ * 建站当天返回 1，之后每过一天 +1；未来日期同样返回 1（不会出现 0 或负数）。
+ */
+export function daysSince(iso: string | number | Date): number {
+  // 数字按「该年 1 月 1 日」处理，保持向后兼容
+  const start =
+    typeof iso === 'number'
+      ? new Date(iso, 0, 1)
+      : // 去掉时间部分，按本地日历天计算，避免 8 小时时区偏移导致少一天
+        new Date(new Date(iso).getFullYear(), new Date(iso).getMonth(), new Date(iso).getDate());
 
-/** 从建站年份 1 月 1 日算起的天数 */
-export function daysSince(iso: string | number): number {
-  const start = new Date(Number(iso), 0, 1).getTime();
-  return Math.max(1, Math.floor((Date.now() - start) / 86400000) + 1);
+  if (Number.isNaN(start.getTime())) return 1;
+
+  const days = Math.floor((Date.now() - start.getTime()) / 86400000) + 1;
+  return Math.max(1, days);
 }
 
 /** 格式化日期为 YYYY-MM-DD */

@@ -24,7 +24,7 @@ const covers = assignCovers(list.map((p) => p.data.title));
 const stats = [
   { label: '文章', value: `${posts.length} 篇`, href: '/posts/' },
   { label: '说说', value: `${notes.length} 条`, href: '/notes/' },
-  { label: '运行', value: `${daysSince(SITE.since)} 天`, href: '/about/' },
+  { label: '运行', value: `${daysSince(SITE.foundedAt)} 天`, href: '/about/' },
 ];
 ---
 

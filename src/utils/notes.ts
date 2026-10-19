@@ -44,19 +44,6 @@ export function collectNoteCategories(
     );
 }
 
-/** 统计说说里出现过的标签，按次数倒序 */
-export function collectNoteTags(notes: Note[]): { tag: string; count: number }[] {
-  const map = new Map<string, number>();
-  for (const note of notes) {
-    for (const tag of note.data.tags) {
-      map.set(tag, (map.get(tag) ?? 0) + 1);
-    }
-  }
-  return [...map.entries()]
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
-}
-
 /** 按「年-月」分组，用于时间轴上的月份分隔 */
 export function groupNotesByMonth(
   notes: Note[]

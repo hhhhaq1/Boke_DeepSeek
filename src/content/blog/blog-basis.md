@@ -9,7 +9,11 @@ comments: true
 
 部署到 **腾讯云 EdgeOne Pages** 的静态个人博客，后续会更新访客评论和点赞功能。
 
-技术组合：**Astro 6（静态站点生成器）+ EdgeOne Pages（国内托管）+ 域名**。
+技术组合：**Astro 5（静态站点生成器）+ EdgeOne Pages（国内托管）+ 域名**。
+
+> 注：最初选的是 Astro 6，但 EdgeOne 构建环境预装的 Node 最高为 22.11.0，
+> 而 Astro 6 要求 `node >= 22.12.0`（差 0.0.1），平台也不允许指定其他版本。
+> 因此降到 Astro 5——这是目前能在 EdgeOne 上跑起来的最高主版本。
 
 ---
 

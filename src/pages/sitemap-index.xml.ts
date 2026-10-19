@@ -9,6 +9,7 @@
  */
 import type { APIContext } from 'astro';
 import { getSortedPosts } from '../utils/posts';
+import { getSortedNotes } from '../utils/notes';
 
 /** 把 URL 片段安全地编码（保留斜杠） */
 function encodePath(p: string): string {
@@ -20,7 +21,7 @@ function encodePath(p: string): string {
 
 export async function GET(context: APIContext) {
   const site = (context.site ?? new URL('https://example.com')).href.replace(/\/$/, '');
-  const posts = await getSortedPosts();
+  const [posts, notes] = await Promise.all([getSortedPosts(), getSortedNotes()]);
 
   /** 静态页面（不再有 /archive/ 和 /tags/，文章列表统一在 /posts/） */
   const staticPaths = ['/', '/posts/', '/notes/', '/about/'];
@@ -31,6 +32,12 @@ export async function GET(context: APIContext) {
       loc: `${site}/blog/${encodePath(post.id)}/`,
       lastmod: (post.data.updatedDate ?? post.data.pubDate).toISOString(),
       priority: '0.8',
+    })),
+    // 每条说说都有独立网址了，也要进站点地图
+    ...notes.map((note) => ({
+      loc: `${site}/notes/${encodePath(note.id)}/`,
+      lastmod: note.data.pubDate.toISOString(),
+      priority: '0.5',
     })),
   ];
 

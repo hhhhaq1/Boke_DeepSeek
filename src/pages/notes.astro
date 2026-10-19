@@ -71,7 +71,15 @@ const showFilter = EFFECTS.noteCategoryFilter && categories.length > 1;
             </h2>
             <div class="notes-month__list">
               {group.notes.map((note) => (
-                <NoteCard note={note} />
+                /* 用锚点包裹卡片：既保留原来的 #锚点定位，
+                   又让整卡可点击进入 /notes/<slug>/ 详情页 */
+                <a
+                  class="note-link"
+                  href={`/notes/${note.id}/`}
+                  aria-label={`查看说说：${note.id}`}
+                >
+                  <NoteCard note={note} />
+                </a>
               ))}
             </div>
           </section>
@@ -84,3 +92,23 @@ const showFilter = EFFECTS.noteCategoryFilter && categories.length > 1;
     )
   }
 </BaseLayout>
+
+<style>
+  /* 让整张卡片可点击，同时不影响卡片内部的点赞按钮 */
+  .note-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--radius);
+    transition: transform 0.18s ease;
+  }
+  .note-link:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+  }
+  /* 卡片内的链接（如正文里的链接）不继承整卡跳转 */
+  .note-link :global(.note a) {
+    position: relative;
+    z-index: 1;
+  }
+</style>

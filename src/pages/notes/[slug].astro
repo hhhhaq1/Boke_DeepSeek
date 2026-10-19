@@ -1,0 +1,150 @@
+---
+/**
+ * 单条说说详情页：/notes/<slug>/
+ *
+ * 为什么需要它：
+ *   说说原本只在 /notes/ 一页里用 #锚点 定位，**无法单独分享**——
+ *   想把某条说说发给朋友，只能发整个页面让对方自己滚。
+ *   这里给每条说说一个独立网址，解决分享和收藏问题。
+ *
+ * 文件名就是网址，和文章一样。改文件名会让旧链接失效，
+ * 所以**起名后尽量别再改**（说说的点赞也按文件名记账，见 NoteCard 注释）。
+ *
+ * 复用 NoteCard 渲染，样式与说说页保持一致，不另做一套。
+ */
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import NoteCard from '../../components/NoteCard.astro';
+import Comments from '../../components/Comments.astro';
+import { SITE } from '../../config';
+import { getSortedNotes, type Note } from '../../utils/notes';
+
+export const getStaticPaths: GetStaticPaths = async () => {
+  const notes = await getSortedNotes();
+
+  return notes.map((note, index) => ({
+    params: { slug: note.id },
+    props: {
+      note,
+      // 相邻说说（说说列表是「置顶优先 + 时间倒序」，与页面展示顺序一致）
+      prev: notes[index - 1] ?? null,
+      next: notes[index + 1] ?? null,
+    },
+  }));
+};
+
+interface Props {
+  note: Note;
+  prev: Note | null;
+  next: Note | null;
+}
+
+const { note, prev, next } = Astro.props;
+
+/** 详情页的 description 取正文纯文本，比空着更利于分享预览 */
+function excerpt(body: string | undefined, max = 80): string {
+  const text = (body ?? '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[*_`>#~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return text.length > max ? `${text.slice(0, max)}…` : text;
+}
+
+const desc = excerpt(note.body) || `一条来自 ${note.data.author} 的说说。`;
+---
+
+<BaseLayout title={`说说 · ${note.id}`} description={desc}>
+  <div class="page-narrow">
+    <nav class="note-detail__back" aria-label="返回说说列表">
+      <a href="/notes/">← 全部说说</a>
+    </nav>
+
+    <NoteCard note={note} />
+
+    {
+      (prev || next) && (
+        <nav class="note-detail__nav" aria-label="相邻说说">
+          {prev ? (
+            <a class="note-detail__item" href={`/notes/${prev.id}/`}>
+              <span class="note-detail__label">← 前一条</span>
+              <span class="note-detail__title">{excerpt(prev.body, 40) || prev.id}</span>
+            </a>
+          ) : (
+            <span />
+          )}
+          {next ? (
+            <a class="note-detail__item note-detail__item--next" href={`/notes/${next.id}/`}>
+              <span class="note-detail__label">后一条 →</span>
+              <span class="note-detail__title">{excerpt(next.body, 40) || next.id}</span>
+            </a>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )
+    }
+
+    <Comments slug={`note:${note.id}`} />
+  </div>
+</BaseLayout>
+
+<style>
+  .note-detail__back {
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  /* 详情页里的卡片不再需要入场动画——它是页面主体，不是滚动中的一张 */
+  .note-detail :global(.note.reveal) {
+    opacity: 1;
+    transform: none;
+  }
+
+  .note-detail__nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 0.75rem;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .note-detail__item {
+    display: block;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+    color: inherit;
+  }
+  .note-detail__item:hover {
+    border-color: var(--accent);
+    text-decoration: none;
+  }
+  .note-detail__label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    margin-bottom: 0.25rem;
+  }
+  .note-detail__title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    /* 相邻说说的标题是正文摘要，限制两行避免高度不一 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .note-detail__item--next {
+    text-align: right;
+  }
+
+  @media (max-width: 40rem) {
+    .note-detail__item--next {
+      text-align: left;
+    }
+  }
+</style>
