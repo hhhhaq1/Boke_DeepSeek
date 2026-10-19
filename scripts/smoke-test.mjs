@@ -17,6 +17,13 @@ function check(name, ok) {
 const postCount = fs.readdirSync('src/content/blog').filter((f) => f.endsWith('.md')).length;
 const pageSize = 6; // 与 src/config.ts 的 SITE.pageSize 保持一致
 const expectOnHome = Math.min(postCount, pageSize);
+// 取第一篇文章作为「文章详情页」的测试样本，避免写死某个 slug
+const firstPostSlug = fs
+  .readdirSync('src/content/blog')
+  .filter((f) => f.endsWith('.md'))
+  .sort()[0]
+  ?.replace(/\.md$/, '');
+const postPath = `/blog/${encodeURIComponent(firstPostSlug)}/`;
 
 const home = await get('/');
 check('首页返回 200', home.status === 200);
@@ -38,15 +45,26 @@ check('主题预置脚本存在', home.html.includes("localStorage.getItem('them
 check('导航高亮首页', /href="\/" aria-current="page"/.test(home.html));
 check('首页「查看全部」指向文章页', home.html.includes('href="/posts/"'));
 
-const post = await get('/blog/hello-world/');
-check('文章页返回 200', post.status === 200);
+const post = await get(postPath);
+check(`文章页返回 200（${postPath}）`, post.status === 200);
 check('文章页 og:type=article', /property="og:type" content="article"/.test(post.html));
 check('文章页有目录', post.html.includes('toc__title') && post.html.includes('data-toc'));
 check('文章页有上一篇/下一篇', post.html.includes('post-nav'));
 check('文章页有代码高亮', /astro-code|shiki/.test(post.html));
 check('文章页有标签', post.html.includes('class="tag"'));
-check('未配置 Giscus 时给出提示', post.html.includes('评论区尚未启用'));
-check('文章页有正文内容', post.html.includes('欢迎来到我的博客'));
+// 评论区：两种模式都应给出可用的形态
+// - giscus 未配置：显示明确的配置提示
+// - self        ：渲染出自带表单与列表的评论区
+const giscusPlaceholder = post.html.includes('评论区尚未启用');
+const selfForm = post.html.includes('self-comments-form');
+check(
+  '评论区形态正确（Giscus 提示 或 自建表单）',
+  giscusPlaceholder || selfForm,
+  `giscus提示=${giscusPlaceholder} 自建表单=${selfForm}`
+);
+// 正文内容因文章而异，改为检查 .prose 容器里确实有文字
+const proseText = (post.html.match(/<div class="prose">([\s\S]*?)<\/div>/) ?? [])[1] ?? '';
+check('文章页有正文内容', proseText.replace(/<[^>]+>/g, '').trim().length > 50);
 
 // 文章页：全量列表 + 搜索框（取代原来的「归档」和「标签」两个页面）
 const posts = await get('/posts/');
@@ -143,12 +161,12 @@ check('RSS 声明 zh-CN', rss.html.includes('<language>zh-CN</language>'));
 
 const sm = await get('/sitemap-index.xml');
 check('Sitemap 返回 200', sm.status === 200);
-check('Sitemap 含文章地址', sm.html.includes('/blog/hello-world/'));
+check(`Sitemap 含文章地址（${postPath}）`, sm.html.includes(postPath));
 check('Sitemap 含文章页', sm.html.includes('/posts/'));
 check('Sitemap 不含已删除页面', !sm.html.includes('/tags/') && !sm.html.includes('/archive/'));
 
-const postDetail = await get('/blog/hello-world/');
-check('文章详情页返回 200', postDetail.status === 200);
+const postDetail = await get(postPath);
+check(`文章详情页返回 200（${postPath}）`, postDetail.status === 200);
 check('文章详情页有正文', postDetail.html.includes('<div class="prose">'));
 check('文章详情页有赞按钮', postDetail.html.includes('data-like'));
 check('文章赞按钮初始隐藏',

@@ -134,7 +134,8 @@ globalThis.comments_kv = kv;
 
 // ---------- 11. 超长内容被截断 ----------
 {
-  const long = 'a'.repeat(3000);
+  // 用有字符多样性的长文：纯 'aaaa' 会被刷屏检测拦下（那是另一种防护，见 21）
+  const long = '这是一段测试评论内容。'.repeat(130) + '补充' + '啊'.repeat(600);
   const r = await onRequest({
     request: req('POST', {
       body: { slug: 'long-post', author: 'x', content: long },
@@ -143,6 +144,18 @@ globalThis.comments_kv = kv;
   });
   const j = await r.json();
   check('超长内容被截断到 2000 字', r.status === 201 && j.comment.content.length === 2000, `长度 ${j.comment?.content?.length}`);
+}
+
+// ---------- 11b. 单字符超长刷屏应被拦 ----------
+{
+  const spam = 'a'.repeat(3000);
+  const r = await onRequest({
+    request: req('POST', {
+      body: { slug: 'long-post', author: 'x', content: spam },
+      headers: { 'eo-connecting-ip': '8.8.8.7' },
+    }).request,
+  });
+  check('单字符超长刷屏被拦截(400)', r.status === 400, `实际 ${r.status}`);
 }
 
 // ---------- 12. 不支持的方法 ----------
@@ -163,6 +176,129 @@ globalThis.comments_kv = kv;
   const g = await onRequest({ request: req('GET', { query: '?slug=' + encodeURIComponent('中文文章-测试') }).request });
   const j = await g.json();
   check('中文 slug 评论可读回', j.comments?.length === 1);
+}
+
+// ---------- 14. 敏感词过滤 ----------
+{
+  const cases = [
+    ['色情内容', '含低俗词'],
+    ['代开发票请联系', '含广告词'],
+    ['赌博网站上线了', '含违法词'],
+  ];
+  for (const [content, label] of cases) {
+    const r = await onRequest({
+      request: req('POST', {
+        body: { slug: 'spam-test', author: 'x', content },
+        headers: { 'eo-connecting-ip': '6.6.6.6' },
+      }).request,
+    });
+    check(`敏感词被拦截：${label}`, r.status === 400, `实际 ${r.status}`);
+  }
+}
+
+// ---------- 15. 链接垃圾 ----------
+{
+  // 超过 2 个链接
+  const many = '看看 http://a.com http://b.com http://c.com';
+  const r1 = await onRequest({
+    request: req('POST', {
+      body: { slug: 'link-spam', author: 'x', content: many },
+      headers: { 'eo-connecting-ip': '5.5.5.5' },
+    }).request,
+  });
+  check('链接数超过 2 个被判广告', r1.status === 400, `实际 ${r1.status}`);
+
+  // 全是链接、没有正文
+  const only = 'https://spam.example.com/very/long/path';
+  const r2 = await onRequest({
+    request: req('POST', {
+      body: { slug: 'link-spam', author: 'x', content: only },
+      headers: { 'eo-connecting-ip': '5.5.5.4' },
+    }).request,
+  });
+  check('纯链接内容被判广告', r2.status === 400, `实际 ${r2.status}`);
+}
+
+// ---------- 16. 刷屏检测 ----------
+{
+  const spam = '哈哈哈'.repeat(30);
+  const r = await onRequest({
+    request: req('POST', {
+      body: { slug: 'repeat-spam', author: 'x', content: spam },
+      headers: { 'eo-connecting-ip': '4.4.4.4' },
+    }).request,
+  });
+  check('重复刷屏内容被拦截', r.status === 400, `实际 ${r.status}`);
+}
+
+// ---------- 17. 伪装管理员昵称 ----------
+{
+  const r = await onRequest({
+    request: req('POST', {
+      body: { slug: 'spoof', author: '管理员', content: '你好' },
+      headers: { 'eo-connecting-ip': '3.3.3.3' },
+    }).request,
+  });
+  check('伪装管理员昵称被拒', r.status === 400, `实际 ${r.status}`);
+}
+
+// ---------- 18. 内部字段不外泄 ----------
+{
+  const r = await onRequest({
+    request: req('POST', {
+      body: { slug: 'hash-test', author: '小明', content: '测试内部字段' },
+      headers: { 'eo-connecting-ip': '1.1.1.1' },
+    }).request,
+  });
+  const j = await r.json();
+  check('POST 响应不含 _hash', j.comment && !('_hash' in j.comment));
+
+  const g = await onRequest({ request: req('GET', { query: '?slug=hash-test' }).request });
+  const gj = await g.json();
+  check('GET 响应不含 _hash', gj.comments?.[0] && !('_hash' in gj.comments[0]));
+}
+
+// ---------- 19. XSS 按纯文本处理 ----------
+{
+  const r = await onRequest({
+    request: req('POST', {
+      body: { slug: 'xss-test', author: '<script>alert(1)</script>', content: '<img src=x onerror=alert(1)>' },
+      headers: { 'eo-connecting-ip': '2.2.2.2' },
+    }).request,
+  });
+  const j = await r.json();
+  // 后端按纯文本原样存储，由前端渲染时转义，因此这里应成功但不被当 HTML 执行
+  check('含 HTML 的评论可按纯文本入库', r.status === 201, `实际 ${r.status}`);
+  check('入库内容保持原样（前端负责转义）', j.comment && j.comment.content === '<img src=x onerror=alert(1)>');
+
+  const g = await onRequest({ request: req('GET', { query: '?slug=xss-test' }).request });
+  const gj = await g.json();
+  check('读回的评论仍为纯文本', typeof gj.comments?.[0]?.content === 'string');
+}
+
+// ---------- 20. 数组/对象请求体被拒 ----------
+{
+  const r = await onRequest({
+    request: req('POST', { body: ['not', 'an', 'object'], headers: { 'eo-connecting-ip': '0.0.0.1' } }).request,
+  });
+  check('数组请求体被拒(400)', r.status === 400, `实际 ${r.status}`);
+}
+
+// ---------- 21. 有字符多样性的长文不应被误判为刷屏 ----------
+{
+  const long = '这是一段测试评论内容。'.repeat(130) + '补充一些内容让它超过两千字上限' + '啊'.repeat(600);
+  const r = await onRequest({
+    request: req('POST', {
+      body: { slug: 'long-post2', author: 'x', content: long },
+      headers: { 'eo-connecting-ip': '8.8.8.9' },
+    }).request,
+  });
+  const j = await r.json();
+  check(
+    `多样长文被正常接受（长度 ${long.length} → 2000）`,
+    r.status === 201 && j.comment.content.length === 2000,
+    `状态 ${r.status}，长度 ${j.comment?.content?.length}`
+  );
 }
 
 let failed = 0;

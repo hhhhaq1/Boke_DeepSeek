@@ -66,53 +66,50 @@ const giscusTheme = 'preferred_color_scheme';
           <p class="comments__notice" id="self-comments-status" role="status">
             正在加载评论…
           </p>
-          <form id="self-comments-form" hidden>
-            <div style="display:grid;gap:.6rem;max-width:32rem">
-              <label>
-                <span class="visually-hidden">昵称</span>
+          <form id="self-comments-form" class="comment-form" hidden>
+            <div class="comment-form__row">
+              <label class="comment-field">
+                <span class="comment-field__label">昵称</span>
                 <input
                   name="author"
                   required
                   maxlength="40"
-                  placeholder="昵称 *"
+                  placeholder="你的昵称"
                   autocomplete="nickname"
-                  style="width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-elev);color:var(--text);font:inherit"
                 />
               </label>
-              <label>
-                <span class="visually-hidden">邮箱（不会公开）</span>
+              <label class="comment-field">
+                <span class="comment-field__label">邮箱（可选，不公开）</span>
                 <input
                   name="email"
                   type="email"
                   maxlength="120"
-                  placeholder="邮箱（可选，不会公开）"
+                  placeholder="you@example.com"
                   autocomplete="email"
-                  style="width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-elev);color:var(--text);font:inherit"
                 />
               </label>
-              <label>
-                <span class="visually-hidden">评论内容</span>
-                <textarea
-                  name="content"
-                  required
-                  maxlength="2000"
-                  rows="4"
-                  placeholder="说点什么…（支持纯文本，最多 2000 字）"
-                  style="width:100%;padding:.55rem .7rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-elev);color:var(--text);font:inherit;resize:vertical"
-                ></textarea>
-              </label>
-              <div style="display:flex;gap:.75rem;align-items:center">
-                <button
-                  type="submit"
-                  style="padding:.55rem 1.1rem;border:0;border-radius:8px;background:var(--accent);color:var(--accent-contrast);font:inherit;font-weight:600;cursor:pointer"
-                >
-                  发表评论
-                </button>
-                <span id="self-comments-msg" style="font-size:.8125rem;color:var(--text-faint)"></span>
-              </div>
+            </div>
+
+            <label class="comment-field">
+              <span class="comment-field__label">评论内容</span>
+              <textarea
+                name="content"
+                required
+                maxlength="2000"
+                rows="4"
+                placeholder="说点什么…（纯文本，最多 2000 字）"
+              ></textarea>
+              <span class="comment-field__hint">
+                <span id="comment-count">0</span> / 2000
+              </span>
+            </label>
+
+            <div class="comment-form__actions">
+              <button type="submit" class="comment-btn">发表评论</button>
+              <span id="self-comments-msg" class="comment-form__msg" role="status"></span>
             </div>
           </form>
-          <ul id="self-comments-list" style="list-style:none;padding:0;margin:1.5rem 0 0;display:grid;gap:.85rem"></ul>
+          <ul id="self-comments-list" class="comment-list"></ul>
         </div>
       )}
     </section>

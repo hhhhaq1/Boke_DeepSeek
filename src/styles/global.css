@@ -1482,6 +1482,205 @@ html.is-theme-switching .mode-toggle__knob {
   border-radius: 4px;
 }
 
+/* ---------- 评论表单（自建评论） ---------- */
+.comment-form {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+/* 昵称 / 邮箱同一行，窄屏自动折为两行 */
+.comment-form__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 0.75rem;
+}
+
+.comment-field {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.comment-field__label {
+  font-size: 0.8125rem;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+.comment-field__hint {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.comment-field input,
+.comment-field textarea {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9375rem;
+  transition: border-color 0.15s ease;
+}
+
+.comment-field input::placeholder,
+.comment-field textarea::placeholder {
+  color: var(--text-faint);
+}
+
+.comment-field input:focus,
+.comment-field textarea:focus {
+  border-color: var(--accent);
+  /* 覆盖浏览器默认外框，避免双重描边 */
+  outline: none;
+}
+
+.comment-field textarea {
+  resize: vertical;
+  min-height: 5.5rem;
+  line-height: 1.6;
+}
+
+.comment-form__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.comment-form__msg {
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
+
+/* 提交结果提示：成功 / 失败各一色 */
+.comment-form__msg[data-kind='ok'] {
+  color: var(--accent);
+}
+
+.comment-form__msg[data-kind='err'] {
+  color: #d9534f;
+}
+
+/* 超字数时计数器变红 */
+.comment-field__hint[data-over] {
+  color: #d9534f;
+}
+
+.comment-btn {
+  padding: 0.5rem 1.1rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.comment-btn:hover {
+  opacity: 0.9;
+}
+
+.comment-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- 评论列表（自建评论） ---------- */
+.comment-list {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.comment-list__empty {
+  color: var(--text-faint);
+  padding: 0.5rem 0;
+}
+
+/* 单条评论 */
+.comment-item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+}
+
+/* 首字母圆形头像，省去上传头像的麻烦 */
+.comment-item__avatar {
+  flex: 0 0 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  /* 用户名第一个字符可能是 CJK，统一基线更好看 */
+  line-height: 1;
+}
+
+.comment-item__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.comment-item__head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.comment-item__author {
+  font-size: 0.9375rem;
+}
+
+.comment-item__time {
+  font-size: 0.8125rem;
+  color: var(--text-faint);
+}
+
+.comment-item__text {
+  margin: 0;
+  /* 保留用户敲的换行，但不执行任何 HTML */
+  white-space: pre-wrap;
+  /* 长串无空格文本（如 URL）强制断行，防止撑破容器 */
+  overflow-wrap: anywhere;
+  color: var(--text-soft);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+/* 窄屏：昵称与邮箱改为上下排列 */
+@media (max-width: 40rem) {
+  .comment-form__row {
+    grid-template-columns: 1fr;
+  }
+  .comment-field input,
+  .comment-field textarea {
+    padding: 0.6rem 0.75rem;
+    /* iOS 聚焦时小于 16px 会自动放大页面 */
+    font-size: 16px;
+  }
+}
+
 /* ---------- 点赞 ---------- */
 /* 服务端渲染时整个 .like 带 hidden，等脚本拉到赞数才显示。
    所以这里不用管「未加载」的样子，只管加载好之后的。 */
