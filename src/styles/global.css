@@ -1989,6 +1989,140 @@ html.is-theme-switching .mode-toggle__knob {
   height: 1.05rem;
 }
 
+/* ---------- 音乐播放器（网易云嵌入） ---------- */
+/*
+ * 固定在左下角：右下角是「返回顶部」，两边都占右边会撞。
+ * 收起时只有一个圆形按钮；展开后弹出网易云官方播放器。
+ */
+.music {
+  position: fixed;
+  left: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  /* 收起时不拦截点击，避免挡住左下角内容 */
+  pointer-events: none;
+}
+.music > * {
+  pointer-events: auto;
+}
+
+.music__toggle {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--bg-elev);
+  color: var(--text-soft);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.music__toggle:hover {
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+.music__toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.music__toggle[aria-expanded='true'] {
+  color: var(--accent);
+}
+.music__icon,
+.music__close {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+/* 默认显示音符，展开后换成叉 */
+.music__close {
+  display: none;
+}
+.music__toggle[aria-expanded='true'] .music__icon {
+  display: none;
+}
+.music__toggle[aria-expanded='true'] .music__close {
+  display: block;
+}
+
+.music__panel {
+  width: 330px;
+  max-width: calc(100vw - 2rem);
+  padding: 0.55rem;
+  border-radius: var(--radius);
+  background: var(--bg-elev);
+  box-shadow: var(--shadow);
+  animation: music-pop 0.2s ease both;
+}
+.music__panel[hidden] {
+  display: none;
+}
+
+@keyframes music-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.music__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.45rem;
+  padding-inline: 0.25rem;
+}
+.music__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.music__link {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.music__link:hover {
+  color: var(--accent);
+}
+
+/* iframe 本身是白底，给个圆角免得尖角突兀 */
+.music__frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+/* 窄屏：面板贴近屏幕边缘，避免溢出 */
+@media (max-width: 40rem) {
+  .music {
+    left: 1rem;
+    bottom: 1rem;
+    gap: 0.4rem;
+  }
+  .music__toggle {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+  .music__panel {
+    width: 300px;
+    padding: 0.45rem;
+  }
+}
+
 /* ---------- 文章两栏布局 ---------- */
 .article-grid {
   display: grid;

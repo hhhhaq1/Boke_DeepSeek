@@ -1,0 +1,156 @@
+---
+/**
+ * 网易云音乐嵌入播放器。
+ *
+ * 为什么用官方嵌入而不是自托管音频：
+ *   版权责任落在网易云的音乐分发体系上，站主不必为"网页里放了什么歌"担风险。
+ *
+ * 形态：
+ *   左下角一个小按钮，点了才展开播放器面板——不主动占用屏幕，
+ *   也不会一进站就出声（浏览器本就禁止带声自动播放）。
+ *   访客的开合状态记在 localStorage，翻页保持。
+ *
+ * 配置见 src/config.ts 的 SITE.music。
+ */
+import { SITE } from '../config';
+
+const { enabled, kind, id, embedUrl, title } = SITE.music;
+
+/**
+ * 拼出外链播放器地址。
+ * 官方格式：https://music.163.com/outchain/player?type=<0歌单|2单曲>&id=<ID>&auto=0&height=<高>
+ * height 必须和 iframe 的高度对上，否则播放器会被裁切。
+ */
+function buildSrc(): string {
+  if (embedUrl) return embedUrl;
+  const type = kind === 'song' ? 2 : 0;
+  // 歌单要显示列表，需要更高；单曲只要一条进度条
+  const height = type === 0 ? 430 : 66;
+  return `https://music.163.com/outchain/player?type=${type}&id=${encodeURIComponent(id)}&auto=0&height=${height}`;
+}
+
+const show = enabled && Boolean(id || embedUrl);
+const src = show ? buildSrc() : '';
+/** 单曲 66 + 边距；歌单 430 + 一点余量 */
+const frameHeight = embedUrl ? 430 : kind === 'song' ? 80 : 450;
+---
+
+{
+  show && (
+    <div class="music" data-music-embed>
+      <button
+        class="music__toggle"
+        type="button"
+        data-music-embed-toggle
+        aria-expanded="false"
+        aria-controls="music-panel"
+        aria-label="展开音乐播放器"
+        title="音乐"
+      >
+        {/* 音符：未展开时 */}
+        <svg class="music__icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M9 18V6l10-2v12"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="6.5" cy="18" r="2.5" fill="currentColor" />
+          <circle cx="16.5" cy="16" r="2.5" fill="currentColor" />
+        </svg>
+        {/* 关闭叉：展开时 */}
+        <svg class="music__close" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M6 6l12 12M18 6L6 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </button>
+
+      <div class="music__panel" id="music-panel" hidden>
+        <p class="music__head">
+          <span class="music__title">{title}</span>
+          <a
+            class="music__link"
+            href={kind === 'song'
+              ? `https://music.163.com/song?id=${id}`
+              : `https://music.163.com/playlist?id=${id}`}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            网易云 ↗
+          </a>
+        </p>
+
+        {/*
+          为什么用 iframe：外链播放器是网易云提供的独立页面，
+          只能整页嵌进来。loading=lazy 让它展开后才加载，不拖慢首屏。
+          没有 title 会影响无障碍，所以显式给出。
+        */}
+        <iframe
+          class="music__frame"
+          frameborder="no"
+          marginwidth="0"
+          marginheight="0"
+          width="330"
+          height={frameHeight}
+          src={src}
+          loading="lazy"
+          title={`网易云音乐 - ${title}`}
+          allow="autoplay"
+        />
+      </div>
+    </div>
+  )
+}
+
+{
+  show && (
+    <script>
+      /*
+       * 展开/收起 + 记住访客的选择。
+       * 逻辑很短，直接写在组件里，不塞进 enhance.ts——
+       * 那里放的是全站通用效果，这个只在音乐组件存在时才有意义。
+       */
+      (() => {
+        const root = document.querySelector<HTMLElement>('[data-music-embed]');
+        if (!root) return;
+        const toggle = root.querySelector<HTMLButtonElement>('[data-music-embed-toggle]');
+        const panel = root.querySelector<HTMLElement>('.music__panel');
+        if (!toggle || !panel) return;
+
+        const KEY = 'music-panel-open';
+
+        const apply = (open: boolean) => {
+          toggle.setAttribute('aria-expanded', String(open));
+          toggle.setAttribute('aria-label', open ? '收起音乐播放器' : '展开音乐播放器');
+          panel.toggleAttribute('hidden', !open);
+        };
+
+        // 恢复上次状态：默认关闭，探访过一次才记住
+        let open = false;
+        try {
+          open = localStorage.getItem(KEY) === '1';
+        } catch {
+          /* 隐私模式：保持关闭 */
+        }
+        apply(open);
+
+        toggle.addEventListener('click', () => {
+          const next = toggle.getAttribute('aria-expanded') !== 'true';
+          apply(next);
+          try {
+            localStorage.setItem(KEY, next ? '1' : '0');
+          } catch {
+            /* 忽略 */
+          }
+        });
+      })();
+    </script>
+  )
+}
