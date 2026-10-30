@@ -1993,6 +1993,10 @@ html.is-theme-switching .mode-toggle__knob {
 /*
  * 固定在左下角：右下角是「返回顶部」，两边都占右边会撞。
  * 收起时只有一个圆形按钮；展开后弹出网易云官方播放器。
+ *
+ * ⚠ iframe 宽度必须与 property 完全一致（330px），不能靠 CSS 缩。
+ *   网易云播放器按 330px 布局，若容器更窄，浏览器会等比缩放整个 iframe，
+ *   导致点击/拖动的位置与实际按钮对不上——这是"操作不灵敏"的根因。
  */
 .music {
   position: fixed;
@@ -2013,8 +2017,9 @@ html.is-theme-switching .mode-toggle__knob {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
-  width: 2.9rem;
-  height: 2.9rem;
+  /* 48px：移动端触控目标的舒适尺寸（Material / iOS 建议 ≥ 44~48） */
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -2022,11 +2027,24 @@ html.is-theme-switching .mode-toggle__knob {
   color: var(--text-soft);
   cursor: pointer;
   box-shadow: var(--shadow);
-  transition: color 0.2s ease, transform 0.2s ease;
+  /* 只过渡颜色与阴影；不动 transform，避免点击时按钮"跑掉" */
+  transition: color 0.18s ease, box-shadow 0.18s ease;
+  /* 触摸设备上没有 300ms 点击延迟 */
+  touch-action: manipulation;
+  /* 防止双击缩放打断点击 */
+  -webkit-tap-highlight-color: transparent;
 }
-.music__toggle:hover {
+@media (hover: hover) {
+  /* 只在有鼠标的设备上做位移，触屏上位移会让"点不准"更严重 */
+  .music__toggle:hover {
+    color: var(--accent);
+    transform: translateY(-2px);
+  }
+}
+.music__toggle:active {
+  /* 按下的即时反馈，比 hover 更可靠 */
   color: var(--accent);
-  transform: translateY(-2px);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 .music__toggle:focus-visible {
   outline: 2px solid var(--accent);
@@ -2039,6 +2057,8 @@ html.is-theme-switching .mode-toggle__knob {
 .music__close {
   width: 1.15rem;
   height: 1.15rem;
+  /* 图标不接收指针事件，点击永远落在按钮上 */
+  pointer-events: none;
 }
 /* 默认显示音符，展开后换成叉 */
 .music__close {
@@ -2051,14 +2071,19 @@ html.is-theme-switching .mode-toggle__knob {
   display: block;
 }
 
+/*
+ * 面板宽度 = iframe 宽度 330 + 左右内边距各 6px × 2 = 342px。
+ * 这样 iframe 的渲染宽度正好 330，不会被缩放。
+ */
 .music__panel {
+  box-sizing: content-box;
   width: 330px;
-  max-width: calc(100vw - 2rem);
-  padding: 0.55rem;
+  max-width: calc(100vw - 1.5rem - 2.75rem - 0.6rem - 12px);
+  padding: 0.5rem 6px 6px;
   border-radius: var(--radius);
   background: var(--bg-elev);
   box-shadow: var(--shadow);
-  animation: music-pop 0.2s ease both;
+  animation: music-pop 0.18s ease both;
 }
 .music__panel[hidden] {
   display: none;
@@ -2067,7 +2092,7 @@ html.is-theme-switching .mode-toggle__knob {
 @keyframes music-pop {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -2080,8 +2105,8 @@ html.is-theme-switching .mode-toggle__knob {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  margin: 0 0 0.45rem;
-  padding-inline: 0.25rem;
+  margin: 0 0 0.4rem;
+  padding-inline: 2px;
 }
 .music__title {
   font-size: 0.8125rem;
@@ -2092,6 +2117,9 @@ html.is-theme-switching .mode-toggle__knob {
   font-size: 0.75rem;
   color: var(--text-faint);
   white-space: nowrap;
+  /* 扩大点击热区，手机上更好点 */
+  padding: 0.2rem 0.3rem;
+  margin: -0.2rem -0.3rem;
 }
 .music__link:hover {
   color: var(--accent);
@@ -2100,26 +2128,49 @@ html.is-theme-switching .mode-toggle__knob {
 /* iframe 本身是白底，给个圆角免得尖角突兀 */
 .music__frame {
   display: block;
-  width: 100%;
+  /* 关键：固定 330，与 outchain/player 的内部布局宽一致 */
+  width: 330px;
+  max-width: 100%;
   border: 0;
   border-radius: 8px;
   background: #fff;
+  /*
+   * 播放器内部的歌曲列表自己会滚动。
+   * 如果没有下面的设置，手指在列表上滑动时，滚到头会"传染"给页面继续滚，
+   * 表现为"我想滚列表，结果整个页面跑了"——这也是操作不跟手的一种。
+   */
+  overscroll-behavior: contain;
 }
 
-/* 窄屏：面板贴近屏幕边缘，避免溢出 */
-@media (max-width: 40rem) {
+/*
+ * 窄屏（< 380px）：屏幕本身放不下 330 宽的播放器。
+ * 这时允许等比缩放，但整体放大面板比例，让缩放尽量小。
+ * 480px 以下把面板改为全宽，减少缩放带来的点击偏移。
+ */
+@media (max-width: 26rem) {
+  .music {
+    left: 0.5rem;
+    bottom: 0.5rem;
+    gap: 0.4rem;
+  }
+  .music__panel {
+    width: auto;
+    max-width: none;
+    flex: 1 1 auto;
+  }
+  .music__frame {
+    width: 100%;
+  }
+}
+
+/* 中间尺寸：面板贴近边缘即可 */
+@media (max-width: 40rem) and (min-width: 26.01rem) {
   .music {
     left: 1rem;
     bottom: 1rem;
-    gap: 0.4rem;
-  }
-  .music__toggle {
-    width: 2.6rem;
-    height: 2.6rem;
   }
   .music__panel {
-    width: 300px;
-    padding: 0.45rem;
+    max-width: calc(100vw - 1rem - 2.75rem - 0.6rem - 12px);
   }
 }
 

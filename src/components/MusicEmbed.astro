@@ -126,28 +126,43 @@ const frameHeight = embedUrl ? 430 : kind === 'song' ? 80 : 450;
 
         const KEY = 'music-panel-open';
 
-        const apply = (open: boolean) => {
+        /*
+         * 用按钮 state 直接驱动，而不是每次读 DOM 属性再取反。
+         * 之前用 getAttribute 判断，如果快速连点两次，第一次的 DOM 更新
+         * 还没落地，第二次读到的仍是旧值，会出现"点了没反应/连跳"。
+         */
+        let open = false;
+
+        const apply = () => {
           toggle.setAttribute('aria-expanded', String(open));
           toggle.setAttribute('aria-label', open ? '收起音乐播放器' : '展开音乐播放器');
           panel.toggleAttribute('hidden', !open);
         };
 
-        // 恢复上次状态：默认关闭，探访过一次才记住
-        let open = false;
+        // 恢复上次状态：默认关闭
         try {
           open = localStorage.getItem(KEY) === '1';
         } catch {
           /* 隐私模式：保持关闭 */
         }
-        apply(open);
+        apply();
 
         toggle.addEventListener('click', () => {
-          const next = toggle.getAttribute('aria-expanded') !== 'true';
-          apply(next);
+          open = !open;
+          apply();
           try {
-            localStorage.setItem(KEY, next ? '1' : '0');
+            localStorage.setItem(KEY, open ? '1' : '0');
           } catch {
             /* 忽略 */
+          }
+        });
+
+        // Esc 收起，键盘用户也需要一条退出路径
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && open) {
+            open = false;
+            apply();
+            toggle.focus();
           }
         });
       })();
