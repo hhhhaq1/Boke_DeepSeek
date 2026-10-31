@@ -20,6 +20,9 @@ importers:
       astro:
         specifier: ^5.18.2
         version: 5.18.2(@types/node@24.19.2)(rollup@4.64.5)(typescript@5.9.3)
+      lunar-javascript:
+        specifier: ^1.7.7
+        version: 1.7.7
 
 packages:
 
@@ -1200,6 +1203,9 @@ packages:
   lru-cache@11.5.3:
     resolution: {integrity: sha512-U4N8FgzmWxc8k1VH8Kr6lQg18U7Fjvby6wXHVRX/ZZ7IwWbRMgrRbP0Wrb5q5NVinryp4SQampHKdvtecItxUg==}
     engines: {node: 20 || >=22}
+
+  lunar-javascript@1.7.7:
+    resolution: {integrity: sha512-u/KYiwPIBo/0bT+WWfU7qO1d+aqeB90Tuy4ErXenr2Gam0QcWeezUvtiOIyXR7HbVnW2I1DKfU0NBvzMZhbVQw==}
 
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
@@ -2991,6 +2997,8 @@ snapshots:
   longest-streak@3.1.0: {}
 
   lru-cache@11.5.3: {}
+
+  lunar-javascript@1.7.7: {}
 
   magic-string@0.30.21:
     dependencies:
