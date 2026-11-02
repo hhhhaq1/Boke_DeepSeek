@@ -1,6 +1,8 @@
 /**
  * 站点级配置：改这里就能换掉全站文案，不必翻模板。
  */
+import { Lunar } from 'lunar-javascript';
+
 export const SITE = {
   /** 站名：Header 品牌、og:site_name、RSS 标题都用它 */
   title: '渐鸿的个人博客',
@@ -46,7 +48,11 @@ export const SITE = {
     avatar: '/head.jpg',
     /** 没有头像图时，圆形色块里显示的字。留空则取站点名首字 */
     avatarText: '',
-    /** 站名旁的小状态徽章，留空则不显示 */
+    /**
+     * 站名旁的小状态徽章。
+     * 首页会按访问者本地时间动态计算（见 getDynamicStatus），
+     * 这里的值仅作为无 JS / 解析失败时的兜底，留空则不显示徽章。
+     */
     status: '摸鱼中',
     /** 侧栏「关于我」的自我介绍，支持多句 */
     bio: '白天当牛马，抽空写点别的。长文放在文章里，碎片放在说说里。',
@@ -315,4 +321,51 @@ export function slugify(text: string): string {
 export function readingTime(body: string): number {
   const chars = body.replace(/\s/g, '').length;
   return Math.max(1, Math.round(chars / 400));
+}
+
+/* ------------------------------------------------------------------ *
+ * 动态状态徽章
+ * ------------------------------------------------------------------ */
+
+/**
+ * 是否处于国庆假期（10 月 1 日 - 10 月 7 日，按公历）。
+ */
+export function isNationalHoliday(date: Date): boolean {
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  return m === 10 && d >= 1 && d <= 7;
+}
+
+/**
+ * 是否处于春节假期（农历除夕至正月初七）。
+ * 除夕与正月初一直接借助 lunar-javascript 的节日表判定，
+ * 正月初二至初七按「农历正月 2-7 日」判定，兼容腊月只有 29 天的年份。
+ */
+export function isSpringFestival(date: Date): boolean {
+  const lunar = Lunar.fromDate(date);
+  const festivals = lunar.getFestivals();
+  // 除夕（腊月最后一天）、正月初一（春节）都带节日标记
+  if (festivals.includes('除夕') || festivals.includes('春节')) return true;
+  // 正月初二至初七
+  return lunar.getMonth() === 1 && lunar.getDay() >= 2 && lunar.getDay() <= 7;
+}
+
+/**
+ * 按访问者本地时间计算首页状态徽章文案。
+ *
+ * 优先级：节假日（国庆 / 春节）> 深夜（23:00-05:59）> 周末 > 工作日。
+ * - 国庆（10.1-10.7）与春节（农历除夕-正月初七）→「回老家中」
+ * - 深夜 23:00-05:59 →「修仙中」
+ * - 周六 / 周日 →「躺平中」
+ * - 其余工作日 →「当牛马中」
+ *
+ * 纯函数，接受任意 Date（含访问者本地时间的 new Date()），便于测试。
+ */
+export function getDynamicStatus(date: Date): string {
+  if (isNationalHoliday(date) || isSpringFestival(date)) return '回老家中';
+  const hour = date.getHours();
+  if (hour >= 23 || hour < 6) return '修仙中';
+  const day = date.getDay();
+  if (day === 0 || day === 6) return '躺平中';
+  return '当牛马中';
 }

@@ -8,7 +8,7 @@
  *
  * 联系方式（GitHub / 邮箱）只留在侧栏「关于我」里，不在首屏重复出现。
  */
-import { SITE, EFFECTS, avatarText } from '../config';
+import { SITE, EFFECTS, avatarText, getDynamicStatus } from '../config';
 
 interface Stat {
   label: string;
@@ -22,8 +22,15 @@ interface Props {
 }
 
 const { stats } = Astro.props;
-const { avatar, status } = SITE.profile;
+const { avatar } = SITE.profile;
 const initial = avatarText();
+
+/**
+ * 状态徽章：构建时按服务器时间给一个合理初值（避免闪烁），
+ * 页面加载后由下方客户端脚本用访问者真实本地时间重算覆盖。
+ * SITE.profile.status 仅在徽章被配置为关闭（空字符串）时禁用显示。
+ */
+const status = SITE.profile.status ? getDynamicStatus(new Date()) : '';
 ---
 
 <section class="home-hero">
@@ -38,9 +45,9 @@ const initial = avatarText();
           <h1 class="home-hero__name">{SITE.heading}</h1>
           {
             status && (
-              <span class="home-hero__status">
+              <span class="home-hero__status" data-dynamic-status>
                 <span class="home-hero__status-dot" aria-hidden="true" />
-                {status}
+                <span class="home-hero__status-text">{status}</span>
               </span>
             )
           }
@@ -67,3 +74,18 @@ const initial = avatarText();
     }
   </nav>
 </section>
+
+<script>
+  /**
+   * 状态徽章客户端实时化：用访问者自己的本地时间重算文案并更新，
+   * 保证每次访问看到的是「访问者当下」的状态，而不是构建时固定的值。
+   * 徽章未渲染（SITE.profile.status 为空）时选择器查不到，直接跳过。
+   */
+  import { getDynamicStatus } from '../config';
+
+  const badge = document.querySelector<HTMLElement>('[data-dynamic-status]');
+  if (badge) {
+    const textEl = badge.querySelector<HTMLElement>('.home-hero__status-text');
+    if (textEl) textEl.textContent = getDynamicStatus(new Date());
+  }
+</script>

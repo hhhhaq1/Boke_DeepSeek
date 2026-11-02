@@ -37,7 +37,12 @@ const frameHeight = embedUrl ? 430 : kind === 'song' ? 80 : 450;
 
 {
   show && (
-    <div class="music" data-music-embed>
+    /*
+     * transition:persist —— 站内跳转时保留这个 DOM 节点，而不是销毁重建。
+     * 关键原因：iframe 里的播放器一旦被重新创建，正在播的歌就断了。
+     * 加上它，访客边听歌边翻文章，音乐不会中断。
+     */
+    <div class="music" data-music-embed transition:persist="music-player">
       <button
         class="music__toggle"
         type="button"

@@ -13,6 +13,38 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 /** 只有真正的鼠标才启用跟随类效果，触屏设备跳过 */
 const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
+/* ------------------------------------------------------------------ *
+ * 可回收的全局监听
+ * ------------------------------------------------------------------ *
+ * 用了 ClientRouter 之后，站内跳转不会重载 JS，效果需要在新页面上重新初始化。
+ * 如果每次初始化都直接 addEventListener，监听器会一轮轮叠加：
+ * 转三页之后 scroll 上就挂了三个 update，既浪费又可能打架。
+ *
+ * 这里统一登记，转场开始前把上一轮全部摘掉，保证任何时刻只有一套在跑。
+ */
+type AnyListener = (e: Event) => void;
+const boundListeners: { target: EventTarget; type: string; fn: AnyListener }[] = [];
+
+/** 登记 window 上的监听（推荐用它，替代直接 addEventListener） */
+function onWindow(type: string, fn: AnyListener) {
+  window.addEventListener(type, fn, { passive: true });
+  boundListeners.push({ target: window, type, fn });
+}
+
+/** 登记 document 上的监听 */
+function onDocument(type: string, fn: AnyListener, options?: AddEventListenerOptions) {
+  document.addEventListener(type, fn, options);
+  boundListeners.push({ target: document, type, fn });
+}
+
+/** 摘掉上一轮登记的全部监听 */
+function clearBoundListeners() {
+  for (const { target, type, fn } of boundListeners) {
+    target.removeEventListener(type, fn);
+  }
+  boundListeners.length = 0;
+}
+
 /** 当前页面已滚过的比例（0–1） */
 function scrollRatio(): number {
   const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -33,8 +65,8 @@ function initReadingProgress() {
   };
 
   update();
-  window.addEventListener('scroll', update, { passive: true });
-  window.addEventListener('resize', update, { passive: true });
+  onWindow('scroll', update);
+  onWindow('resize', update);
 }
 
 /* ------------------------------------------------------------------ *
@@ -55,8 +87,8 @@ function initBackToTop() {
   };
 
   update();
-  window.addEventListener('scroll', update, { passive: true });
-  window.addEventListener('resize', update, { passive: true });
+  onWindow('scroll', update);
+  onWindow('resize', update);
 
   btn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
@@ -104,8 +136,8 @@ function initTocHighlight() {
   };
 
   pick();
-  window.addEventListener('scroll', pick, { passive: true });
-  window.addEventListener('resize', pick, { passive: true });
+  onWindow('scroll', pick);
+  onWindow('resize', pick);
 }
 
 /* ------------------------------------------------------------------ *
@@ -286,22 +318,18 @@ function initCursorGlow() {
     }
   };
 
-  window.addEventListener(
-    'pointermove',
-    (e) => {
-      if (e.pointerType !== 'mouse') return;
-      targetX = e.clientX;
-      targetY = e.clientY;
-      glow.classList.add('is-active');
-      if (!running) {
-        running = true;
-        requestAnimationFrame(tick);
-      }
-    },
-    { passive: true }
-  );
+  onWindow('pointermove', (e) => {
+    if ((e as PointerEvent).pointerType !== 'mouse') return;
+    targetX = (e as PointerEvent).clientX;
+    targetY = (e as PointerEvent).clientY;
+    glow.classList.add('is-active');
+    if (!running) {
+      running = true;
+      requestAnimationFrame(tick);
+    }
+  });
 
-  document.addEventListener('pointerleave', () => glow.classList.remove('is-active'));
+  onDocument('pointerleave', () => glow.classList.remove('is-active'));
 }
 
 /* ------------------------------------------------------------------ *
@@ -449,9 +477,10 @@ function initSearch() {
   });
 
   // 按 / 快速聚焦搜索框；已经在输入框里就不劫持
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== '/' || e.metaKey || e.ctrlKey || e.altKey) return;
-    const target = e.target as HTMLElement | null;
+  onDocument('keydown', (e) => {
+    const ke = e as KeyboardEvent;
+    if (ke.key !== '/' || ke.metaKey || ke.ctrlKey || ke.altKey) return;
+    const target = ke.target as HTMLElement | null;
     if (
       target &&
       (target.tagName === 'INPUT' ||
@@ -460,7 +489,7 @@ function initSearch() {
     ) {
       return;
     }
-    e.preventDefault();
+    ke.preventDefault();
     input.focus();
   });
 
@@ -676,7 +705,22 @@ function initLikes() {
 /* ------------------------------------------------------------------ *
  * 启动
  * ------------------------------------------------------------------ */
-try {
+
+/**
+ * 初始化所有页面级效果。
+ *
+ * 为什么要包成函数、而不是直接在顶层跑一次？
+ * 用了 ClientRouter 之后，站内跳转**不会重新加载 JS**，
+ * 脚本只在首次进入时执行一次。若不重跑，转场到新页面时这些效果全部失效。
+ * 所以改成监听 astro:page-load（首次加载与每次转场完成都会触发）后重新初始化。
+ *
+ * 每个 init 开头都有「找不到对应 DOM 就 return」，重复调用是安全的；
+ * 它们内部挂的 window/document 级监听通过 onWindow/onDocument 统一登记，
+ * 每次初始化前先清掉上一轮，避免转几次页面后监听器叠加。
+ */
+function initAllEffects() {
+  clearBoundListeners();
+
   if (EFFECTS.readingProgress) {
     initReadingProgress();
     initBackToTop();
@@ -691,9 +735,45 @@ try {
   // 点赞没有 EFFECTS 开关：关掉的方式是 SITE.likes.mode = 'none'，
   // 那样页面上根本不会渲染 [data-like]，这里自然就空转返回了。
   initLikes();
+}
 
-  // 标记脚本已成功执行，head 里的兜底定时器据此决定要不要强制显示内容
-  document.documentElement.setAttribute('data-enhanced', '');
-} catch (err) {
-  console.error('[enhance]', err);
+let initialized = false;
+
+function boot() {
+  try {
+    initAllEffects();
+    initialized = true;
+    // 标记脚本已成功执行，head 里的兜底定时器据此决定要不要强制显示内容
+    document.documentElement.setAttribute('data-enhanced', '');
+  } catch (err) {
+    console.error('[enhance]', err);
+  }
+}
+
+/*
+ * astro:page-load：首次进入 + 每次转场完成都会触发。
+ * 首次进入时页面尚未初始化，走 boot()；之后走「只重跑效果」。
+ *
+ * 这个监听挂一次就够，所以用 once 语义手动管理：
+ * 它本身不属于页面级效果，不该被 clearBoundListeners 清掉。
+ */
+document.addEventListener('astro:page-load', () => {
+  if (!initialized) {
+    boot();
+    return;
+  }
+  try {
+    initAllEffects();
+  } catch (err) {
+    console.error('[enhance]', err);
+  }
+});
+
+// 兜底：若没有 ClientRouter，astro:page-load 不会触发，首屏也要跑起来
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    if (!initialized) boot();
+  });
+} else if (!initialized) {
+  boot();
 }

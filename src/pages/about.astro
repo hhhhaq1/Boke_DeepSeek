@@ -2,8 +2,14 @@
 /**
  * 关于页：/about
  *
- * 内容全部来自 src/config.ts 的 SITE.profile / SITE.social，
- * 改文字不需要动这个文件——去 config.ts 改就行。
+ * 结构（按「访客真正想知道什么」排序）：
+ *   1. 开场：一张脸 + 一句话——这是谁
+ *   2. 最近（Now）：在读 / 在听 / 在做——他现在什么样，最有温度的一屏
+ *   3. 时间线：站点走过的节点——他做过什么
+ *   4. 联系：邮箱 / GitHub / RSS
+ *
+ * 数据尽量从 SITE 与内容集合读取，改文字不用动这个文件；
+ * Now 区和时间线属于「随手改」的内容，直接写在这里的常量里。
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { SITE, formatDate, daysSince } from '../config';
@@ -15,150 +21,203 @@ const { avatar, avatarText, bio, location, status } = profile;
 
 const posts = await getSortedPosts();
 const notes = await getSortedNotes();
-const running = daysSince(SITE.foundedAt);
+const days = daysSince(SITE.foundedAt);
+
+/** 最近一次更新：取文章与说说里较新的那个 */
+const latestDate = [posts[0]?.data.pubDate, notes[0]?.data.pubDate]
+  .filter((d): d is Date => Boolean(d))
+  .sort((a, b) => b.valueOf() - a.valueOf())[0];
+
+/**
+ * Now 区：三类状态。
+ * 写一两句话就够——太多反而像简历。
+ */
+const now = [
+  {
+    icon: '📖',
+    label: '在读',
+    text: '《挪威的森林》，读到电话亭那段，反复看了三遍。',
+  },
+  {
+    icon: '🎧',
+    label: '在听',
+    text: '陈奕迅、陶喆、王杰，随机播放不挑歌。',
+  },
+  {
+    icon: '🎯',
+    label: '在做',
+    text: '把这个博客慢慢写完，再试试小程序。',
+  },
+];
+
+/**
+ * 时间线：站点与个人的关键节点，按时间倒序。
+ * 想加一条就往数组前面塞一个对象。
+ */
+const timeline = [
+  {
+    date: '2026-11',
+    title: '音乐与转场',
+    desc: '接入网易云歌单，页面切换也做成了淡入——点哪都顺一点。',
+    tag: '体验',
+  },
+  {
+    date: '2026-10',
+    title: '加入评论与点赞',
+    desc: '评论区跑在自己的边缘函数上，数据存在 KV 里，不依赖第三方。',
+    tag: '功能',
+  },
+  {
+    date: '2026-10-15',
+    title: '站点上线',
+    desc: '部署到 EdgeOne Pages，国内访问不用等，写文章变成「push 一下」的事。',
+    tag: '建站',
+  },
+];
 
 /** 头像文字：显式配置 > 作者名首字 */
 const initial = avatarText || SITE.author.charAt(0);
-
-/** 最新一条说说的日期，用来表达「这里还活着」 */
-const latest = notes[0]?.data.pubDate;
-
-const facts = [
-  { label: '在建', value: `${running} 天` },
-  { label: '文章', value: `${posts.length} 篇` },
-  { label: '说说', value: `${notes.length} 条` },
-];
 ---
 
 <BaseLayout title="关于" description={bio}>
-  <div class="page-narrow">
-    <header class="about-hero">
-      <span class="about-hero__avatar">
-        {avatar ? <img src={avatar} alt={SITE.author} width="72" height="72" /> : initial}
-      </span>
+  <!-- 1. 开场 -->
+  <section class="intro">
+    <span class="intro__avatar">
+      {avatar ? <img src={avatar} alt={SITE.author} width="88" height="88" /> : initial}
+    </span>
 
-      <h1 class="about-hero__name">
+    <div class="intro__text">
+      <h1 class="intro__name">
         {SITE.author}
-        {status && <span class="about-hero__status">{status}</span>}
+        {status && <span class="intro__status">{status}</span>}
       </h1>
+      {location && <p class="intro__loc">📍 {location}</p>}
+      <p class="intro__bio">{bio}</p>
+    </div>
 
-      {location && <p class="about-hero__loc">📍 {location}</p>}
+    <div class="intro__stats">
+      <div><strong>{days}</strong><span>天</span></div>
+      <div><strong>{posts.length}</strong><span>篇</span></div>
+      <div><strong>{notes.length}</strong><span>条</span></div>
+    </div>
+  </section>
 
-      <p class="about-hero__bio">{bio}</p>
+  <!-- 2. Now 区 -->
+  <h2 class="about-head">最近</h2>
+  <div class="now">
+    {
+      now.map((n) => (
+        <div class="now__item">
+          <span class="now__icon" aria-hidden="true">
+            {n.icon}
+          </span>
+          <div>
+            <span class="now__label">{n.label}</span>
+            <p class="now__text">{n.text}</p>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+  {latestDate && <p class="now__update">站点最后更新于 {formatDate(latestDate)}</p>}
 
-      <ul class="about-facts">
-        {facts.map((f) => (
-          <li class="about-fact">
-            <span class="about-fact__label">{f.label}</span>
-            <strong class="about-fact__value">{f.value}</strong>
-          </li>
-        ))}
-      </ul>
-    </header>
+  <!-- 3. 时间线 -->
+  <h2 class="about-head">这里发生过的事</h2>
+  <ol class="tl">
+    {
+      timeline.map((t) => (
+        <li class="tl__item">
+          <span class="tl__dot" aria-hidden="true" />
+          <div class="tl__card">
+            <div class="tl__head">
+              <time class="tl__date">{t.date}</time>
+              <span class="tl__tag">{t.tag}</span>
+            </div>
+            <h3 class="tl__title">{t.title}</h3>
+            <p class="tl__desc">{t.desc}</p>
+          </div>
+        </li>
+      ))
+    }
+  </ol>
 
-    <div class="prose">
-      <h2>这里写什么</h2>
-      <p>
-        长文放在<a href="/posts/">文章</a>里，碎片放在<a href="/notes/">说说</a>里。
-        前者是坐下来认真写完的，后者是路上、车上、睡前随手记的——两者都不追求完整，
-        记下来主要是为了以后的自己还能看懂。
-      </p>
-      <p>
-        目前写得最多的是读书笔记和出去玩的事。技术方面懂一些，
-        但更想写清楚「为什么这么做」和「踩过哪些坑」，而不是罗列步骤。
-      </p>
-
-      <h2>这个站是怎么搭的</h2>
-      <p>
-        没有服务器，也没有数据库。文章就是仓库里的 Markdown 文件，
-        写完 push，托管平台自动构建上线——所以我只需要管内容，不用管运维。
-      </p>
-      <ul>
-        <li><strong>框架</strong>：Astro，构建时生成纯静态 HTML，默认不往浏览器塞 JavaScript</li>
-        <li><strong>托管</strong>：腾讯云 EdgeOne Pages，国内访问快，有免费额度</li>
-        <li><strong>评论与点赞</strong>：跑在平台自己的边缘函数上，数据存在 KV 里</li>
-        <li><strong>写作</strong>：本地有个写作台，填表单、传图，产出物和手写文件一模一样</li>
-      </ul>
-
-      <h2>找到我</h2>
-      <p>
-        文章和说说下面都能留言。想私下说也可以发邮件，我看到会回。
-      </p>
-      <ul class="about-contact">
-        {social.email && (
+  <!-- 4. 联系 -->
+  <h2 class="about-head">找到我</h2>
+  <div class="contact">
+    <p>文章和说说下面都能留言。想私下说也可以发邮件，我看到会回。</p>
+    <ul class="contact__list">
+      {
+        social.email && (
           <li>
-            <span class="about-contact__label">邮箱</span>
+            <span>邮箱</span>
             <a href={`mailto:${social.email}`}>{social.email}</a>
           </li>
-        )}
-        {social.github && (
+        )
+      }
+      {
+        social.github && (
           <li>
-            <span class="about-contact__label">GitHub</span>
+            <span>GitHub</span>
             <a href={social.github} rel="noopener noreferrer" target="_blank">
               {social.github.replace(/^https?:\/\/(www\.)?github\.com\//, '@')}
             </a>
           </li>
-        )}
-        {social.rss && (
-          <li>
-            <span class="about-contact__label">订阅</span>
-            <a href={social.rss}>RSS</a>
-          </li>
-        )}
-      </ul>
-
-      {
-        latest && (
-          <p class="about-last">
-            最近一次更新是 {formatDate(latest)}。
-          </p>
         )
       }
-
-      <blockquote>
-        <p>积少成多，滴水穿石。</p>
-      </blockquote>
-    </div>
+      {
+        social.rss && (
+          <li>
+            <span>订阅</span>
+            <a href={social.rss}>RSS</a>
+          </li>
+        )
+      }
+    </ul>
   </div>
+
+  <blockquote class="about-quote">
+    <p>积少成多，滴水穿石。</p>
+  </blockquote>
 </BaseLayout>
 
 <style>
-  /* 关于页专属样式只在这里，不进全局 CSS */
-  .about-hero {
-    text-align: center;
-    padding: 1.5rem 0 2.5rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2.5rem;
-  }
-  .about-hero__avatar {
-    display: inline-flex;
+  /* ---------- 1. 开场 ---------- */
+  .intro {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
     align-items: center;
-    justify-content: center;
-    width: 4.5rem;
-    height: 4.5rem;
+    padding: 1.5rem 0 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .intro__avatar {
+    width: 5.5rem;
+    height: 5.5rem;
     border-radius: 50%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
     background: var(--accent-soft);
     color: var(--accent);
-    font-size: 1.75rem;
+    font-size: 2rem;
     font-weight: 700;
-    overflow: hidden;
-    margin-bottom: 1rem;
+    flex-shrink: 0;
   }
-  .about-hero__avatar img {
+  .intro__avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-  .about-hero__name {
+  .intro__name {
+    margin: 0;
+    font-size: 1.875rem;
+    letter-spacing: -0.02em;
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 0.6rem;
     flex-wrap: wrap;
-    margin: 0 0 0.4rem;
-    font-size: 1.5rem;
   }
-  .about-hero__status {
+  .intro__status {
     font-size: 0.75rem;
     font-weight: 500;
     padding: 0.15rem 0.6rem;
@@ -166,62 +225,225 @@ const facts = [
     background: var(--accent-soft);
     color: var(--accent);
   }
-  .about-hero__loc {
-    margin: 0 0 0.75rem;
-    font-size: 0.875rem;
+  .intro__loc {
+    margin: 0.15rem 0 0.5rem;
+    font-size: 0.8125rem;
     color: var(--text-faint);
   }
-  .about-hero__bio {
-    margin: 0 auto 1.5rem;
-    max-width: 30rem;
-    color: var(--text-soft);
-  }
-
-  .about-facts {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    list-style: none;
+  .intro__bio {
     margin: 0;
-    padding: 0;
+    color: var(--text-soft);
+    max-width: 30rem;
   }
-  .about-fact {
+  .intro__stats {
+    display: flex;
+    gap: 1.5rem;
+  }
+  .intro__stats > div {
     display: grid;
-    gap: 0.15rem;
+    justify-items: center;
+    gap: 0.1rem;
   }
-  .about-fact__label {
+  .intro__stats strong {
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .intro__stats span {
     font-size: 0.75rem;
     color: var(--text-faint);
   }
-  .about-fact__value {
-    font-size: 1.25rem;
-    font-variant-numeric: tabular-nums;
+
+  /* 区块标题：与首页 section-head 视觉一致 */
+  .about-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 2.5rem 0 1rem;
+    font-size: 1.0625rem;
+  }
+  .about-head::before {
+    content: '';
+    width: 3px;
+    height: 1.05em;
+    border-radius: 2px;
+    background: var(--accent);
   }
 
-  .about-contact {
+  /* ---------- 2. Now ---------- */
+  .now {
+    display: grid;
+    gap: 0.7rem;
+  }
+  .now__item {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    padding: 0.95rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+  }
+  .now__icon {
+    font-size: 1.2rem;
+    line-height: 1.5;
+    flex-shrink: 0;
+  }
+  .now__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 0.15rem;
+  }
+  .now__text {
+    margin: 0;
+    color: var(--text-soft);
+    font-size: 0.9375rem;
+  }
+  .now__update {
+    margin: 0.75rem 0 0;
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    text-align: right;
+  }
+
+  /* ---------- 3. 时间线 ---------- */
+  .tl {
     list-style: none;
+    margin: 0;
+    padding: 0 0 0 1.75rem;
+    position: relative;
+  }
+  /* 竖线：从第一个圆点连到最后一个 */
+  .tl::before {
+    content: '';
+    position: absolute;
+    left: 0.42rem;
+    top: 0.9rem;
+    bottom: 0.9rem;
+    width: 2px;
+    border-radius: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--border));
+    opacity: 0.55;
+  }
+  .tl__item {
+    position: relative;
+    padding-bottom: 0.8rem;
+  }
+  .tl__item:last-child {
+    padding-bottom: 0;
+  }
+  .tl__dot {
+    position: absolute;
+    left: -1.75rem;
+    top: 1.1rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+  }
+  .tl__card {
+    padding: 0.95rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+  }
+  .tl__head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.25rem;
+  }
+  .tl__date {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+  .tl__tag {
+    font-size: 0.6875rem;
+    padding: 0.05rem 0.5rem;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .tl__title {
+    margin: 0 0 0.2rem;
+    font-size: 1rem;
+  }
+  .tl__desc {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-soft);
+  }
+
+  /* ---------- 4. 联系 ---------- */
+  .contact {
+    padding: 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-elev);
+  }
+  .contact > p {
+    margin: 0 0 0.85rem;
+    color: var(--text-soft);
+    font-size: 0.9375rem;
+  }
+  .contact__list {
+    list-style: none;
+    margin: 0;
     padding: 0;
     display: grid;
     gap: 0.5rem;
   }
-  .about-contact li {
+  .contact__list li {
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
     align-items: baseline;
+    font-size: 0.9375rem;
   }
-  .about-contact__label {
+  .contact__list span {
     flex: 0 0 3.5rem;
     font-size: 0.8125rem;
     color: var(--text-faint);
   }
-  .about-last {
-    font-size: 0.875rem;
-    color: var(--text-faint);
+  .contact__list a {
+    color: var(--accent);
   }
 
-  @media (max-width: 40rem) {
-    .about-facts {
-      gap: 1.25rem;
+  .about-quote {
+    margin: 2rem 0 0;
+    padding: 0.6rem 1.1rem;
+    border-left: 3px solid var(--accent);
+    background: var(--bg-soft);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--text-soft);
+    font-size: 0.9375rem;
+  }
+  .about-quote p {
+    margin: 0;
+  }
+
+  /* ---------- 窄屏 ---------- */
+  @media (max-width: 44rem) {
+    .intro {
+      grid-template-columns: auto 1fr;
+      gap: 1rem;
+      padding-top: 1rem;
+    }
+    .intro__avatar {
+      width: 4.25rem;
+      height: 4.25rem;
+      font-size: 1.5rem;
+    }
+    .intro__name {
+      font-size: 1.5rem;
+    }
+    .intro__stats {
+      grid-column: 1 / -1;
+      gap: 2rem;
+      padding-top: 0.35rem;
     }
   }
 </style>
