@@ -2,7 +2,6 @@
 /**
  * 基础布局：<html> 骨架、页头、页脚、主题初始化。
  */
-import { ClientRouter } from 'astro:transitions';
 import { SITE } from '../config';
 import { ogPath } from '../pages/og/[hash].png';
 import Header from '../components/Header.astro';
@@ -62,14 +61,6 @@ const ogImage = new URL(
     <link rel="sitemap" href="/sitemap-index.xml" />
     <link rel="alternate" type="application/rss+xml" title={SITE.title} href="/rss.xml" />
 
-    {/*
-      页面切换动画：Astro 5 内置的 ClientRouter。
-      - 接管站内链接点击，用浏览器原生 View Transitions API 做交叉淡入，
-        不再整页刷新，所以"硬切"消失。
-      - 转场曲线定义在 global.css 的 ::view-transition-old/new(root)。
-      - 不支持该 API 的旧浏览器会自动退化为普通整页跳转，不会白屏。
-    */}
-    <ClientRouter />
 
     <!-- Open Graph -->
     <meta property="og:type" content={type} />
